@@ -1,8 +1,7 @@
 const Discord = require('discord.js');
 const request = require('request');
-const auth = require('./auth');
-
-const ES_NODE = 'https://es.jordanliu.net';
+const settings = require('./settings');
+const ES_NODE = settings.es.host;
 const bot = new Discord.Client();
 
 // filters message to keep only the content we're interested in
@@ -33,6 +32,9 @@ bot.on('message', message => {
   // send message to ES
   request.post(`${ES_NODE}/discord_write/_doc/`, {
     json: messageToJson(message),
+    headers: {
+      'Authorization': 'Basic ' + Buffer.from(`${settings.es.auth.username}:${settings.es.auth.password}`).toString('base64')
+    },
     agentOptions: {
       rejectUnauthorized: false
     }
@@ -46,4 +48,4 @@ bot.on('message', message => {
   })
 });
 
-bot.login(auth.token);
+bot.login(settings.discord.auth.token);
