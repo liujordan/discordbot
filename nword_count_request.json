@@ -1,0 +1,71 @@
+{
+  "aggs": {
+    "counts": {
+      "terms": {
+        "field": "author.username",
+        "size": 5,
+        "order": {
+          "_count": "desc"
+        }
+      }
+    }
+  },
+  "size": 0,
+  "_source": {
+    "excludes": []
+  },
+  "stored_fields": [
+    "*"
+  ],
+  "script_fields": {},
+  "docvalue_fields": [
+    {
+      "field": "createdAt",
+      "format": "date_time"
+    }
+  ],
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "match_all": {}
+        },
+        {
+          "bool": {
+            "should": [
+              {
+                "multi_match": {
+                  "type": "best_fields",
+                  "query": "nigger",
+                  "lenient": true
+                }
+              },
+              {
+                "bool": {
+                  "should": [
+                    {
+                      "multi_match": {
+                        "type": "best_fields",
+                        "query": "nigga",
+                        "lenient": true
+                      }
+                    },
+                    {
+                      "query_string": {
+                        "query": "n*gg*"
+                      }
+                    }
+                  ],
+                  "minimum_should_match": 1
+                }
+              }
+            ],
+            "minimum_should_match": 1
+          }
+        }
+      ],
+      "should": [],
+      "must_not": []
+    }
+  }
+}
