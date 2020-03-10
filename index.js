@@ -1,15 +1,17 @@
 const Discord = require('discord.js');
 const request = require('request');
 const settings = require('./settings');
+const help = require('./help');
+const top = require('./top');
+const define = require('./define');
+const nwordRequest = require('./nword_count_request');
+const utils = require('./utils')
 const ES_NODE = settings.es.host;
+
 const bot = new Discord.Client();
-const yargs = require('yargs');
 
 
-const parser = yargs
-    .command('top', 'Shows the 5 people who say the n-word the most')
-    .exitProcess(false)
-    .help(false);
+
 // filters message to keep only the content we're interested in
 function messageToJson(message) {
   return {
@@ -27,45 +29,25 @@ function messageToJson(message) {
   }
 }
 
+
 bot.on('ready', () => {
   bot.user.setActivity("%help");
   console.log('I am ready!');
 });
 
-const nwordRequest = require('./nword_count_request');
+let thing = {
+  top,
+  help,
+  define
+}
+
 // on command message
 bot.on('message', message => {
   if (!message.content.startsWith(settings.bot.prefix)) return;
-
-  const withoutPrefix = message.content.slice(settings.bot.prefix.length);
-  const split = withoutPrefix.split(/ +/);
-  command = parser.parse(split);
-
-  if (command._[0] == 'top') {
-    request.post(`${ES_NODE}/discord_read/_search/`, {
-      json: nwordRequest,
-      headers: {
-        'Authorization': 'Basic ' + Buffer.from(`${settings.es.auth.username}:${settings.es.auth.password}`).toString('base64')
-      },
-      agentOptions: {
-        rejectUnauthorized: false
-      }
-    },(err, res, body) => {
-      if (err) {
-        console.log(err)
-        return;
-      }
-      // console.log(`statusCode: ${res.statusCode}`)
-      let output = ""
-      body.aggregations.counts.buckets.forEach((bucket) => {
-        output += `${bucket.key} said the n-word ${bucket.doc_count} time${bucket.doc_count > 1 ? 's' : ''}\n`
-      })
-      message.channel.send(output)
-    })
-  }
-  if (command._[0] == 'help') {
-    message.channel.send('`top` is the only command rn')
-  }
+  let command = utils.getCommand(message)
+  // run the function depending on the command with this message
+  console.log(thing[command._[0]])
+  thing[command._[0]](message)
 });
 
 // forwarding all messages to ES
@@ -83,13 +65,9 @@ bot.on('message', message => {
       rejectUnauthorized: false
     }
   }, (err, res, body) => {
-    if (err) {
-      console.error(err)
-      return;
-    }
-    // console.log(`statusCode: ${res.statusCode}`)
-    // console.log(body)
+    if (err) return console.error(err)
   })
 });
 
 bot.login(settings.discord.auth.token);
+

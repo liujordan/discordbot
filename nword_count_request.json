@@ -39,33 +39,40 @@
                   "query": "nigger",
                   "lenient": true
                 }
-              },
+              }, 
               {
-                "bool": {
-                  "should": [
-                    {
-                      "multi_match": {
-                        "type": "best_fields",
-                        "query": "nigga",
-                        "lenient": true
-                      }
-                    },
-                    {
-                      "query_string": {
-                        "query": "n*gg*"
-                      }
-                    }
-                  ],
-                  "minimum_should_match": 1
+                "multi_match": {
+                  "type": "best_fields",
+                  "query": "nigga",
+                  "lenient": true
+                }
+              }, 
+              {
+                "multi_match": {
+                  "type": "best_fields",
+                  "query": "negro",
+                  "lenient": true
+                }
+              }, 
+              {
+                "multi_match": {
+                  "type": "best_fields",
+                  "query": "niggas",
+                  "lenient": true
+                }
+              }, 
+              {
+                "multi_match": {
+                  "type": "best_fields",
+                  "query": "niggers",
+                  "lenient": true
                 }
               }
             ],
             "minimum_should_match": 1
           }
         }
-      ],
-      "should": [],
-      "must_not": []
+      ]
     }
   }
 }
