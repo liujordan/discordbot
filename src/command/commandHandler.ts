@@ -1,12 +1,12 @@
-import {Define} from "./define";
+import {Ndefine} from "./ndefine";
 import {Help} from "./help";
 import {Top} from "./top";
 import {Command} from "./baseCommand";
-import {Parser} from "./parser";
 import {Client} from "discord.js";
 import RedisSMQ, {QueueMessage} from "rsmq";
 import winston from "winston";
 import {RedisCommand, RedisConnector} from "../utils/redisConnector";
+import {Define} from "./define";
 
 const logger = winston.loggers.get('commands');
 
@@ -16,11 +16,10 @@ export class CommandHandler {
 
   constructor(bot: Client, rsmq: RedisSMQ) {
     this.bot = bot;
-    this.addCommand('define', new Define());
+    this.addCommand('ndefine', new Ndefine());
     this.addCommand('top', new Top());
     this.addCommand('help', new Help());
-
-    let parser = new Parser();
+    this.addCommand('define', new Define());
 
     // on command message
     let redis = RedisConnector.getInstance();
@@ -31,18 +30,6 @@ export class CommandHandler {
           return;
         }
 
-        console.log("==============================================");
-        console.log("=================Queue Stats==================");
-        console.log("==============================================");
-        console.log("visibility timeout: ", resp.vt);
-        console.log("delay for new messages: ", resp.delay);
-        console.log("max size in bytes: ", resp.maxsize);
-        console.log("total received messages: ", resp.totalrecv);
-        console.log("total sent messages: ", resp.totalsent);
-        console.log("created: ", resp.created);
-        console.log("last modified: ", resp.modified);
-        console.log("current n of messages: ", resp.msgs);
-        console.log("hidden messages: ", resp.hiddenmsgs);
         for (let i = 0; i < resp.msgs; i++) {
           redis.rsmq.popMessage({qname: redis.qname}, (err, msg: QueueMessage) => {
             if (err) return logger.error(err);
