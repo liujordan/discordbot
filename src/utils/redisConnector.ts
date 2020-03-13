@@ -48,12 +48,14 @@ export class RedisConnector {
 
     this.rsmq.listQueuesAsync()
       .then(q => {
-        logger.info("Creating queues");
         if (!q.includes(this.qname)) {
+          logger.info("Creating queues");
           this.rsmq.createQueue({qname: "DISCORDJOBS"}, function (err, resp) {
             if (err) return logger.error(err);
             if (resp) return logger.info("Created redis queue");
           });
+        } else {
+          logger.info("Redis queues exist, skipping create");
         }
       })
       .catch(logger.error);

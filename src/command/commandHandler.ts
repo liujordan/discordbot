@@ -46,6 +46,7 @@ export class CommandHandler {
         for (let i = 0; i < resp.msgs; i++) {
           redis.rsmq.popMessage({qname: redis.qname}, (err, msg: QueueMessage) => {
             if (err) return logger.error(err);
+            if (!msg.message) return;
             logger.debug("Recieved: " + msg.message);
             let data: RedisCommand = JSON.parse(msg.message);
 

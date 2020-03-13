@@ -3,6 +3,6 @@ WORKDIR /app
 COPY package.json .
 RUN npm install
 COPY . .
-RUN npm run build
+RUN npm run build && rm -r src
 
 CMD node build/index.js
