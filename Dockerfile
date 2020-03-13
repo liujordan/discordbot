@@ -1,9 +1,8 @@
-FROM node:8-alpine
-
+FROM node:12-alpine as build
 WORKDIR /app
-
-COPY package.json /app
+COPY package.json .
 RUN npm install
-COPY . /app
+COPY . .
+RUN npm run build
 
-CMD node index.js
+CMD node build/index.js

@@ -1,4 +1,4 @@
-import {BaseCommand} from 'command/baseCommand';
+import {BaseCommand} from './baseCommand';
 import {logger} from "../utils/logger";
 import {RedisCommand} from "../utils/redisConnector";
 import {Client, TextChannel} from "discord.js";

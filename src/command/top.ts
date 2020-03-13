@@ -1,6 +1,6 @@
 import {logger} from "../utils/logger";
 import {environment} from '../config/environment';
-import {BaseCommand} from 'command/baseCommand';
+import {BaseCommand} from './baseCommand';
 import request from 'request';
 import {RedisCommand} from "../utils/redisConnector";
 import {Client, TextChannel} from "discord.js";
@@ -24,7 +24,7 @@ export class Top extends BaseCommand {
       body.aggregations.counts.buckets.forEach((bucket) => {
         output += `${bucket.key} said the n-word ${bucket.doc_count} time${bucket.doc_count > 1 ? 's' : ''}\n`;
       });
-      
+
       bot.channels.fetch(rc.data.channel_id)
         .then((channel: TextChannel) => {
           channel.send(output).catch(logger.error);

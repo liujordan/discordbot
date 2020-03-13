@@ -1,0 +1,16 @@
+version: '3.7'
+services:
+  bot1:
+    build: .
+    volumes:
+      - ./config.json:/app/config.json
+    environment:
+      DISCORDBOT_MODE: publisher
+  bot2:
+    build: .
+    volumes:
+      - ./config.json:/app/config.json
+    environment:
+      DISCORDBOT_MODE: subscriber
+  redis:
+    image: redis:alpine

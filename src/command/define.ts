@@ -1,8 +1,8 @@
 import {environment} from '../config/environment';
-import {BaseCommand} from 'command/baseCommand';
+import {BaseCommand} from './baseCommand';
 import request from 'request';
 import {logger} from "../utils/logger";
-import {getChannel} from "utils/utils";
+import {getChannel} from "../utils/utils";
 import {RedisCommand} from "../utils/redisConnector";
 import {Client, TextChannel} from "discord.js";
 
