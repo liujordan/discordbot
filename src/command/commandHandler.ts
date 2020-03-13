@@ -1,12 +1,12 @@
 import {Ndefine} from "./ndefine";
-import {Help} from "./help";
 import {Top} from "./top";
 import {Command} from "./baseCommand";
-import {Client} from "discord.js";
+import {Client, TextChannel} from "discord.js";
 import RedisSMQ, {QueueMessage} from "rsmq";
 import winston from "winston";
 import {RedisCommand, RedisConnector} from "../utils/redisConnector";
 import {Define} from "./define";
+import {getChannel} from "../utils/utils";
 
 const logger = winston.loggers.get('commands');
 
@@ -16,10 +16,9 @@ export class CommandHandler {
 
   constructor(bot: Client, rsmq: RedisSMQ) {
     this.bot = bot;
-    this.addCommand('ndefine', new Ndefine());
-    this.addCommand('top', new Top());
-    this.addCommand('help', new Help());
-    this.addCommand('define', new Define());
+    this.addCommand('ndefine', new Ndefine(bot));
+    this.addCommand('top', new Top(bot));
+    this.addCommand('define', new Define(bot));
 
     // on command message
     let redis = RedisConnector.getInstance();
@@ -36,8 +35,13 @@ export class CommandHandler {
             if (!msg.message) return;
             logger.debug("Recieved: " + msg.message);
             let data: RedisCommand = JSON.parse(msg.message);
-
-            this.execute(this.bot, data);
+            if (data.command == 'help') {
+              return getChannel(bot, data).then((channel: TextChannel) => {
+                channel.send(this.getHelp()).catch(logger.error);
+              });
+            } else {
+              this.execute(this.bot, data);
+            }
           });
         }
       });
@@ -48,11 +52,20 @@ export class CommandHandler {
     this.commands[name] = command;
   }
 
-  execute(bot: Client, msg: RedisCommand): any {
+  getHelp(): string {
+    let out = "";
+    for (let c in this.commands) {
+      let cmd: Command = this.commands[c];
+      out += `\`${c}\`: ${cmd.helpString}\n`;
+      if (cmd.exampleString != '') out += `\t_${cmd.exampleString}_\n`;
+    }
+    return out;
+  }
+
+  execute(bot: Client, msg: RedisCommand) {
     let command = this.commands[msg.command];
     if (command) {
-      let res = command.execute(bot, msg);
-      if (!res) command.help();
+      command.execute(bot, msg);
     } else {
       logger.warn(`No command '${msg.command}'`);
     }

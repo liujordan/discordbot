@@ -17,6 +17,8 @@ function publisher(bot) {
 
   bot.on('message', (message: Message) => {
     if (message.author.bot) return;
+    if (message.content == "good bot") message.channel.send("Thanks <3").catch(logger.error);
+    if (message.content == "bad bot") message.channel.send("Your mom a hoe").catch(logger.error);
     let pm = parser.parse(message);
     if (!pm.success) return;
     logger.debug(pm.message.toString());
@@ -27,6 +29,34 @@ function publisher(bot) {
 switch (environment.mode) {
   case "publisher":
     logger.info("Starting publisher...");
+    // forwarding all messages to ES
+    bot.on('message', message => {
+      // skip the message if it's from a bot
+      if (message.author.bot || !message.guild) return;
+
+      // send message to ES
+      request.post(`${ES_NODE}/discord_write/_doc/`, {
+        json: {
+          content: message.content,
+          createdAt: message.createdAt,
+          author: {
+            username: message.author.username
+          },
+          channel: {
+            name: (message.channel as TextChannel).name
+          },
+          guild: {
+            name: message.guild.name
+          }
+        },
+        headers: {
+          'Authorization': 'Basic ' + Buffer.from(`${environment.es.auth.username}:${environment.es.auth.password}`).toString('base64')
+        },
+        agentOptions: {
+          rejectUnauthorized: false
+        }
+      });
+    });
     publisher(bot);
     break;
   case "subscriber":
@@ -42,35 +72,6 @@ bot.on('ready', () => {
   logger.info("Discord Client ready");
 });
 
-
-// forwarding all messages to ES
-bot.on('message', message => {
-  // skip the message if it's from a bot
-  if (message.author.bot || !message.guild) return;
-
-  // send message to ES
-  request.post(`${ES_NODE}/discord_write/_doc/`, {
-    json: {
-      content: message.content,
-      createdAt: message.createdAt,
-      author: {
-        username: message.author.username
-      },
-      channel: {
-        name: (message.channel as TextChannel).name
-      },
-      guild: {
-        name: message.guild.name
-      }
-    },
-    headers: {
-      'Authorization': 'Basic ' + Buffer.from(`${environment.es.auth.username}:${environment.es.auth.password}`).toString('base64')
-    },
-    agentOptions: {
-      rejectUnauthorized: false
-    }
-  });
-});
 
 bot.login(environment.discord.auth.token).catch(logger.error);
 
