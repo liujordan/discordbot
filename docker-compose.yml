@@ -2,12 +2,14 @@ version: '3.7'
 services:
   bot1:
     build: .
+    image: liujordan/discordbot:1.0.10
     volumes:
       - ./config.json:/app/config.json
     environment:
       DISCORDBOT_MODE: publisher
   bot2:
     build: .
+    image: liujordan/discordbot:1.0.10
     volumes:
       - ./config.json:/app/config.json
     environment:

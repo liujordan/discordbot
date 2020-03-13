@@ -40,12 +40,15 @@ export class RedisConnector {
 
     this.client.subscribe(`${this.ns}:rt:${this.qname}`);
     this.rsmq = new RedisSMQ({
+      host: environment.redis.host,
+      port: environment.redis.port,
       ns: this.ns,
       realtime: true,
     });
 
     this.rsmq.listQueuesAsync()
       .then(q => {
+        logger.info("Creating queues");
         if (!q.includes(this.qname)) {
           this.rsmq.createQueue({qname: "DISCORDJOBS"}, function (err, resp) {
             if (err) return logger.error(err);
