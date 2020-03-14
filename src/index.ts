@@ -5,10 +5,12 @@ import {CommandHandler} from "./command/commandHandler";
 import {getLogger, level as logLevel} from "./utils/logger";
 import {Parser} from "./command/parser";
 import {RedisConnector} from "./utils/redisConnector";
+import {MongoConnector} from "./utils/mongoConnector";
 
 const ES_NODE = environment.es.host;
 const bot: Client = new Client();
 const redisConnector = RedisConnector.getInstance();
+const mongoConnector = MongoConnector.getInstance();
 const logger = getLogger();
 logger.info("Logging level: " + logLevel);
 
@@ -61,7 +63,7 @@ switch (environment.mode) {
     break;
   case "subscriber":
     logger.info("Starting subscriber...");
-    new CommandHandler(bot, redisConnector.rsmq);
+    new CommandHandler(bot, redisConnector.rsmq, mongoConnector);
     break;
   default:
     throw new Error("Invalid DISCORDBOT_MODE. only 'subscriber' or 'publisher'");

@@ -1,7 +1,7 @@
 import {BaseCommand} from "./baseCommand";
 import {RedisCommand} from "../utils/redisConnector";
 import {TextChannel} from "discord.js";
-import {getItemCategories, Item, render} from "../utils/maplestoryApi";
+import {Avatar, getItemCategories, render} from "../utils/maplestoryApi";
 
 const data = {
   "id": 1584088799827,
@@ -190,10 +190,17 @@ const data = {
   "animating": false
 };
 
-let asdf: Item[] = [];
-for (let item in data.selectedItems) {
-  asdf.push({id: data.selectedItems[item].id});
-}
+const defaultAvatar: Avatar = {
+  items: [
+    {id: 2000},
+    {id: 12000},
+    {id: 31231},
+    {id: 1041142},
+    {id: 1062231},
+    {id: 1072324},
+    {id: 20038}
+  ]
+};
 
 export class Me extends BaseCommand {
 
@@ -201,14 +208,23 @@ export class Me extends BaseCommand {
     this.getChannel(rc).then((channel: TextChannel) => {
       getItemCategories().then(resp => {
         let out = Object.keys(resp.data);
-        // channel.send(JSON.stringify(out)).catch(this.logger.error);
-        channel.send("asdf", {
-          "embed": {
-            image: {
-              url: render(asdf)
-            }
+        this.mc.getAvatar(rc.data.user_id).then(av => {
+          let asdf = (av2) => {
+            channel.send("", {
+              "embed": {
+                image: {
+                  url: render(av2.items)
+                }
+              }
+            }).catch(this.logger.error);
+          };
+
+          if (av == null) {
+            this.mc.addAvatar(rc.data.user_id, defaultAvatar).then(asdf);
+          } else {
+            asdf(av);
           }
-        }).catch(this.logger.error);
+        });
       });
     });
   }

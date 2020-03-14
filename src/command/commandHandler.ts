@@ -8,6 +8,8 @@ import {Define} from "./define";
 import {getChannel} from "../utils/utils";
 import {getLogger} from "../utils/logger";
 import {Me} from "./me";
+import {MongoConnector} from "../utils/mongoConnector";
+import {Shop} from "./shop";
 
 const logger = getLogger('commands');
 
@@ -15,14 +17,15 @@ export class CommandHandler {
   commands = {};
   bot: Client;
 
-  constructor(bot: Client, rsmq: RedisSMQ) {
+  constructor(bot: Client, rsmq: RedisSMQ, mc: MongoConnector) {
     this.bot = bot;
-    this.addCommand('ndefine', new Ndefine(bot));
-    this.addCommand('top', new Top(bot));
-    this.addCommand('define', new Define(bot));
-    this.addCommand('me', new Me(bot));
+    this.addCommand('ndefine', new Ndefine(bot, mc));
+    this.addCommand('top', new Top(bot, mc));
+    this.addCommand('define', new Define(bot, mc));
+    this.addCommand('me', new Me(bot, mc));
+    this.addCommand('shop', new Shop(bot, mc));
+    
 
-    // on command message
     let redis = RedisConnector.getInstance();
     redis.client.on("message", (m) => {
       rsmq.getQueueAttributes({qname: redis.qname}, (err, resp) => {

@@ -13,10 +13,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/mongodb": "^3.5.2",
     "axios": "^0.19.2",
     "discord-command-parser": "^1.3.3",
     "discord.js": "^12.0.2",
     "encodeurl": "^1.0.2",
+    "mongodb": "^3.5.5",
     "request": "^2.88.0",
     "rsmq": "^0.12.0",
     "rsmq-worker": "^0.5.2",

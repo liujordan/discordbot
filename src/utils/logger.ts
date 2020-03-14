@@ -1,4 +1,5 @@
 import * as winston from 'winston';
+import {Logger} from 'winston';
 
 const {combine, timestamp, label, printf} = winston.format;
 
@@ -6,9 +7,11 @@ const myFormat = printf(({level, message, label, timestamp}) => {
   return `${timestamp} [${label}] ${level}: ${message}`;
 });
 export const level = 'debug';
+const loggers = {};
 
-function addLabeledLogger(s: string) {
-  winston.loggers.add(s, {
+function addLabeledLogger(s: string): Logger {
+  loggers[s] = true;
+  return winston.loggers.add(s, {
     level: level,
     format: combine(
       label({label: s}),
@@ -23,12 +26,8 @@ function addLabeledLogger(s: string) {
   });
 }
 
-if (process.env.NODE_ENV !== 'production') {
-  addLabeledLogger("default");
-  addLabeledLogger('redis');
-  addLabeledLogger('commands');
-}
-
 export function getLogger(s?) {
-  return winston.loggers.get(s || 'default');
+  s = s || 'default';
+  if (loggers[s] !== true) return addLabeledLogger(s);
+  return winston.loggers.get(s);
 }

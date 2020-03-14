@@ -2,17 +2,23 @@ version: '3.7'
 services:
   bot1:
     build: .
-    image: liujordan/discordbot:1.2.11
+    image: liujordan/discordbot:1.2.14
     volumes:
       - ./config.json:/app/config.json
     environment:
       DISCORDBOT_MODE: publisher
   bot2:
     build: .
-    image: liujordan/discordbot:1.2.11
+    image: liujordan/discordbot:1.2.14
     volumes:
       - ./config.json:/app/config.json
     environment:
       DISCORDBOT_MODE: subscriber
   redis:
     image: redis:alpine
+    ports:
+      - 6379:6379
+  mongo:
+    image: mongo
+    ports:
+      - 27017:27017

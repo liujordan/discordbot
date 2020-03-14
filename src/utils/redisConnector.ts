@@ -1,10 +1,10 @@
 import RedisSMQ from "rsmq";
 import {environment} from "../config/environment";
-import winston from "winston";
 import redis from 'redis';
 import {ParsedMessage} from "discord-command-parser";
+import {getLogger} from "./logger";
 
-const logger = winston.loggers.get('redis');
+const logger = getLogger('redis');
 
 export interface RedisCommand {
   command: string

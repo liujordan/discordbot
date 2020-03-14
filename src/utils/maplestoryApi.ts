@@ -5,10 +5,13 @@ const REGION = 'GMS';
 const VERSION = '211.1.0';
 const URL = `https://maplestory.io/api`;
 
+export interface Avatar {
+  items: Item[]
+}
+
 export interface Item {
   id: number
 }
-
 
 export function getItemCategories() {
   return axios({
