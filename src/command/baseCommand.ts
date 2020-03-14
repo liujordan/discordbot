@@ -7,7 +7,7 @@ export interface Command {
   name: string
   helpString: string
   exampleString?: string
-  execute: (Client, RedisCommand) => any
+  execute: (RedisCommand) => any
 }
 
 
@@ -20,10 +20,9 @@ export class BaseCommand implements Command {
 
   constructor(bot: Client) {
     this.bot = bot;
-
   }
 
-  execute(bot: Client, message: RedisCommand) {
+  execute(message: RedisCommand) {
     return;
   }
 

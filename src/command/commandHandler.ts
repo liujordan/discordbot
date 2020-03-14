@@ -7,6 +7,7 @@ import {RedisCommand, RedisConnector} from "../utils/redisConnector";
 import {Define} from "./define";
 import {getChannel} from "../utils/utils";
 import {getLogger} from "../utils/logger";
+import {Me} from "./me";
 
 const logger = getLogger('commands');
 
@@ -19,15 +20,13 @@ export class CommandHandler {
     this.addCommand('ndefine', new Ndefine(bot));
     this.addCommand('top', new Top(bot));
     this.addCommand('define', new Define(bot));
+    this.addCommand('me', new Me(bot));
 
     // on command message
     let redis = RedisConnector.getInstance();
     redis.client.on("message", (m) => {
       rsmq.getQueueAttributes({qname: redis.qname}, (err, resp) => {
-        if (err) {
-          console.error(err);
-          return;
-        }
+        if (err) return logger.error(err);
 
         for (let i = 0; i < resp.msgs; i++) {
           redis.rsmq.popMessage({qname: redis.qname}, (err, msg: QueueMessage) => {
@@ -40,7 +39,7 @@ export class CommandHandler {
                 channel.send(this.getHelp()).catch(logger.error);
               });
             } else {
-              this.execute(this.bot, data);
+              this.execute(data);
             }
           });
         }
@@ -62,10 +61,10 @@ export class CommandHandler {
     return out;
   }
 
-  execute(bot: Client, msg: RedisCommand) {
-    let command = this.commands[msg.command];
+  execute(msg: RedisCommand) {
+    let command: Command = this.commands[msg.command];
     if (command) {
-      command.execute(bot, msg);
+      command.execute(msg);
     } else {
       logger.warn(`No command '${msg.command}'`);
     }

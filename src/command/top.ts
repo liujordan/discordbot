@@ -2,7 +2,6 @@ import {environment} from '../config/environment';
 import {BaseCommand} from './baseCommand';
 import request from 'request';
 import {RedisCommand} from "../utils/redisConnector";
-import {Client} from "discord.js";
 
 const nwordRequest = require('../../nword_count_request');
 
@@ -12,7 +11,7 @@ export class Top extends BaseCommand {
   name = 'top';
   helpString = 'Gets the top 10 n-word users';
 
-  execute(bot: Client, rc: RedisCommand) {
+  execute(rc: RedisCommand) {
     request.post(`${ES_NODE}/discord_read/_search/`, {
       json: nwordRequest,
       headers: {'Authorization': 'Basic ' + Buffer.from(`${environment.es.auth.username}:${environment.es.auth.password}`).toString('base64')},

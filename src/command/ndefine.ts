@@ -1,7 +1,6 @@
 import {environment} from '../config/environment';
 import {BaseCommand} from './baseCommand';
 import {RedisCommand} from "../utils/redisConnector";
-import {Client} from "discord.js";
 import {normalDefine} from "../utils/rapidApi";
 
 function getRapidApiHeader(apiName: string) {
@@ -16,7 +15,7 @@ export class Ndefine extends BaseCommand {
   helpString = 'Defines a word using the normal dictionary';
   exampleString = `${environment.bot.prefix}ndefine dictionary`;
 
-  execute(bot: Client, rc: RedisCommand) {
+  execute(rc: RedisCommand) {
     this.logger.debug("defining " + rc.arguments[0]);
     let word = rc.arguments[0];
     normalDefine(word)
