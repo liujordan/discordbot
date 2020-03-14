@@ -1,4 +1,3 @@
-import {logger} from "../utils/logger";
 import {environment} from '../config/environment';
 import {BaseCommand} from './baseCommand';
 import request from 'request';
@@ -19,13 +18,13 @@ export class Top extends BaseCommand {
       headers: {'Authorization': 'Basic ' + Buffer.from(`${environment.es.auth.username}:${environment.es.auth.password}`).toString('base64')},
       agentOptions: {rejectUnauthorized: false}
     }, (err, res, body) => {
-      if (err) return logger.error(err);
+      if (err) return this.logger.error(err);
       let output = "";
 
       body.aggregations.counts.buckets.forEach((bucket) => {
         output += `${bucket.key} said the n-word ${bucket.doc_count} time${bucket.doc_count > 1 ? 's' : ''}\n`;
       });
-      
+
       this.send(rc, output);
 
     });

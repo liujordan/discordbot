@@ -2,14 +2,14 @@ import {Client, Message, TextChannel} from 'discord.js';
 import {environment} from './config/environment';
 import request from 'request';
 import {CommandHandler} from "./command/commandHandler";
-import {level as logLevel, logger} from "./utils/logger";
+import {getLogger, level as logLevel} from "./utils/logger";
 import {Parser} from "./command/parser";
 import {RedisConnector} from "./utils/redisConnector";
 
 const ES_NODE = environment.es.host;
 const bot: Client = new Client();
 const redisConnector = RedisConnector.getInstance();
-
+const logger = getLogger();
 logger.info("Logging level: " + logLevel);
 
 function publisher(bot) {

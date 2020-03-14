@@ -1,6 +1,7 @@
 import {RedisCommand} from "../utils/redisConnector";
 import {Channel, Client, TextChannel} from "discord.js";
-import winston from "winston";
+import {Logger} from "winston";
+import {getLogger} from "../utils/logger";
 
 export interface Command {
   name: string
@@ -9,13 +10,13 @@ export interface Command {
   execute: (Client, RedisCommand) => any
 }
 
-const logger = winston.loggers.get('commands');
 
 export class BaseCommand implements Command {
   name: string = "DEFAULT";
   helpString: string = "DEFAULT HELP STRING";
   exampleString: string = "";
   bot: Client;
+  logger: Logger = getLogger('commands');
 
   constructor(bot: Client) {
     this.bot = bot;
@@ -28,7 +29,7 @@ export class BaseCommand implements Command {
 
   send(rc: RedisCommand, message): void {
     this.getChannel(rc).then((channel: TextChannel) => {
-      channel.send(message).catch(logger.error);
+      channel.send(message).catch(this.logger.error);
     });
   }
 

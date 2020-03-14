@@ -3,12 +3,12 @@ import {Top} from "./top";
 import {Command} from "./baseCommand";
 import {Client, TextChannel} from "discord.js";
 import RedisSMQ, {QueueMessage} from "rsmq";
-import winston from "winston";
 import {RedisCommand, RedisConnector} from "../utils/redisConnector";
 import {Define} from "./define";
 import {getChannel} from "../utils/utils";
+import {getLogger} from "../utils/logger";
 
-const logger = winston.loggers.get('commands');
+const logger = getLogger('commands');
 
 export class CommandHandler {
   commands = {};

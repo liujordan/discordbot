@@ -1,9 +1,8 @@
 import {environment} from '../config/environment';
 import {BaseCommand} from './baseCommand';
-import request from 'request';
-import {logger} from "../utils/logger";
 import {RedisCommand} from "../utils/redisConnector";
 import {Client} from "discord.js";
+import {normalDefine} from "../utils/rapidApi";
 
 function getRapidApiHeader(apiName: string) {
   return {
@@ -18,26 +17,23 @@ export class Ndefine extends BaseCommand {
   exampleString = `${environment.bot.prefix}ndefine dictionary`;
 
   execute(bot: Client, rc: RedisCommand) {
-    let options1 = {
-      method: 'GET',
-      url: `https://wordsapiv1.p.rapidapi.com/words/${rc.arguments[0]}/definitions`,
-      headers: getRapidApiHeader("wordsApi")
-    };
-    logger.debug("defining " + rc.arguments[0]);
-    let out = `**${rc.arguments[0]}**\n`;
-    request(options1, function (error, response, body) {
-      if (error) return logger.error(error);
-      body = JSON.parse(body);
-      // first check the normal dictionary
-      if (body.definitions != undefined && body.definitions.length !== 0) {
-        body.definitions.forEach(def => {
-          logger.debug("found " + def.definition);
-          out += `_${def.partOfSpeech}_\t${def.definition}\n`;
-        });
-        return this.send(rc, out);
-      } else {
-        return this.send(rc, "word not found");
-      }
-    });
+    this.logger.debug("defining " + rc.arguments[0]);
+    let word = rc.arguments[0];
+    normalDefine(word)
+      .then(resp => {
+        let body = resp.data;
+        let out = `**${body.word}**\n`;
+        // first check the normal dictionary
+        if (body.definitions != undefined && body.definitions.length !== 0) {
+          body.definitions.forEach(def => {
+            this.logger.debug("found " + def.definition);
+            out += `_${def.partOfSpeech}_\t${def.definition}\n`;
+          });
+          return this.send(rc, out);
+        } else {
+          return this.send(rc, "word not found");
+        }
+      })
+      .catch(err => this.logger.error(err.response.data));
   }
 }

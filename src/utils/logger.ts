@@ -7,12 +7,11 @@ const myFormat = printf(({level, message, label, timestamp}) => {
 });
 export const level = 'debug';
 
-
-function addLabeledLogger(s?: string) {
-  winston.loggers.add(s || "default", {
+function addLabeledLogger(s: string) {
+  winston.loggers.add(s, {
     level: level,
     format: combine(
-      label({label: s || "default"}),
+      label({label: s}),
       timestamp(),
       myFormat
     ),
@@ -25,9 +24,11 @@ function addLabeledLogger(s?: string) {
 }
 
 if (process.env.NODE_ENV !== 'production') {
-  addLabeledLogger();
+  addLabeledLogger("default");
   addLabeledLogger('redis');
   addLabeledLogger('commands');
 }
 
-export const logger = winston.loggers.get('default');
+export function getLogger(s?) {
+  return winston.loggers.get(s || 'default');
+}
