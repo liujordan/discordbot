@@ -38,6 +38,7 @@ export class MongoConnector {
     return new Promise((resolve, reject) => {
       this.db.collection(avatarCollection).findOne({user_id: userid}, (err, result: avatarMember) => {
         if (err) return reject(err);
+        if (result == null) return resolve(null);
         return resolve(result.avatar);
       });
     });

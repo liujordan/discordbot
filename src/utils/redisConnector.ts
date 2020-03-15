@@ -90,11 +90,16 @@ export class RedisConnector {
     return p;
   }
 
-  set(key: string, val: any) {
-    this.client.set(key, JSON.stringify(val));
+  set(key: string, val: any): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.client.set(key, JSON.stringify(val), (err, res) => {
+        if (err) return reject(err);
+        resolve(res);
+      });
+    });
   }
 
-  get(key: string): Promise<any> {
+  get(key: string): Promise<string> {
     return new Promise((resolve, reject) => {
       this.client.get(key, (err, res) => {
         if (err) return reject(err);

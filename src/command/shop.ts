@@ -19,9 +19,9 @@ const ms = MaplestoryApi.getInstance();
 export class Shop extends BaseCommand {
   send2(channel: TextChannel, out: string[], cat: string, subcat: string, args: string[]) {
     // TODO change this to use MessageEmbed instead of options
-    let items = ms.getItemsByCategory(((<any>ItemCategory)[args[0]]), cat, subcat);
     let itemIdx = 0;
     if (cat !== "" && subcat !== "") {
+      let items = ms.getItemsByCategory(((<any>ItemCategory)[args[0]]), cat, subcat);
       let options = {
         embed: {
           description: `${itemIdx + 1}/${items.length}`,
@@ -52,7 +52,7 @@ export class Shop extends BaseCommand {
       }
       itemIdx %= items.length;
 
-      msg.edit(`${itemIdx + 1}/${items.length}`, {
+      msg.edit("", {
         embed: {
           description: `${itemIdx + 1}/${items.length}`,
           image: {

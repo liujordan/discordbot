@@ -49,8 +49,9 @@ export class MaplestoryApi {
           if (res === null) {
             axios.get(URL + `/${REGION}/${VERSION}/item/category`)
               .then(res => {
-                let data = JSON.parse(res.data);
-                rc.set(this.redisKeys.categories, data);
+                console.log(res.data);
+                let data = res.data;
+                rc.set(this.redisKeys.categories, data).catch(logger.error);
                 this.categories = data;
                 resolve(data);
               })
