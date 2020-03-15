@@ -12,6 +12,7 @@ import {MongoConnector} from "../utils/mongoConnector";
 import {Shop} from "./shop";
 
 const logger = getLogger('commands');
+const redis = RedisConnector.getInstance();
 
 export class CommandHandler {
   commands = {};
@@ -24,30 +25,38 @@ export class CommandHandler {
     this.addCommand('define', new Define(bot, mc));
     this.addCommand('me', new Me(bot, mc));
     this.addCommand('shop', new Shop(bot, mc));
-    
 
-    let redis = RedisConnector.getInstance();
-    redis.client.on("message", (m) => {
+
+    // take on all available jobs on create
+    rsmq.getQueueAttributes({qname: redis.qname}, (err, resp) => {
+      this.dequeue(resp, redis, bot);
+    });
+
+    // listen to new jobs
+    redis.subscription.on("message", (m) => {
       rsmq.getQueueAttributes({qname: redis.qname}, (err, resp) => {
         if (err) return logger.error(err);
-
-        for (let i = 0; i < resp.msgs; i++) {
-          redis.rsmq.popMessage({qname: redis.qname}, (err, msg: QueueMessage) => {
-            if (err) return logger.error(err);
-            if (!msg.message) return;
-            logger.debug("Recieved: " + msg.message);
-            let data: RedisCommand = JSON.parse(msg.message);
-            if (data.command == 'help') {
-              return getChannel(bot, data).then((channel: TextChannel) => {
-                channel.send(this.getHelp()).catch(logger.error);
-              });
-            } else {
-              this.execute(data);
-            }
-          });
-        }
+        this.dequeue(resp, redis, bot);
       });
     });
+  }
+
+  private dequeue(resp: RedisSMQ.QueueAttributes, redis: RedisConnector, bot: Client) {
+    for (let i = 0; i < resp.msgs; i++) {
+      redis.rsmq.popMessage({qname: redis.qname}, (err, msg: QueueMessage) => {
+        if (err) return logger.error(err);
+        if (!msg.message) return;
+        logger.debug("Recieved: " + msg.message);
+        let data: RedisCommand = JSON.parse(msg.message);
+        if (data.command == 'help') {
+          return getChannel(bot, data).then((channel: TextChannel) => {
+            channel.send(this.getHelp()).catch(logger.error);
+          });
+        } else {
+          this.execute(data);
+        }
+      });
+    }
   }
 
   addCommand(name: string, command: Command) {

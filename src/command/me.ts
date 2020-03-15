@@ -1,7 +1,7 @@
 import {BaseCommand} from "./baseCommand";
 import {RedisCommand} from "../utils/redisConnector";
 import {TextChannel} from "discord.js";
-import {Avatar, getItemCategories, render} from "../utils/maplestoryApi";
+import {Avatar, MaplestoryApi, renderLink} from "../utils/maplestoryApi";
 
 const data = {
   "id": 1584088799827,
@@ -202,18 +202,19 @@ const defaultAvatar: Avatar = {
   ]
 };
 
+const ms: MaplestoryApi = MaplestoryApi.getInstance();
+
 export class Me extends BaseCommand {
 
   execute(rc: RedisCommand) {
     this.getChannel(rc).then((channel: TextChannel) => {
-      getItemCategories().then(resp => {
-        let out = Object.keys(resp.data);
+      ms.getItemCategories().then(resp => {
         this.mc.getAvatar(rc.data.user_id).then(av => {
           let asdf = (av2) => {
             channel.send("", {
               "embed": {
                 image: {
-                  url: render(av2.items)
+                  url: renderLink(av2.items)
                 }
               }
             }).catch(this.logger.error);

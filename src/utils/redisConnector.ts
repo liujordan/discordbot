@@ -23,22 +23,24 @@ export class RedisConnector {
   private static _instance: RedisConnector;
   rsmq: RedisSMQ;
   qname = "DISCORDJOBS";
+  subscription: redis.RedisClient;
   client: redis.RedisClient;
   ns = "rsmq";
 
   constructor() {
     if (RedisConnector._instance) return;
     logger.info("Connecting redis...");
+    this.subscription = redis.createClient({host: environment.redis.host,});
     this.client = redis.createClient({host: environment.redis.host,});
 
-    this.client.on('connect', () => {
+    this.subscription.on('connect', () => {
       logger.info("Redis is connected");
     });
-    this.client.on('reconnecting', () => {
+    this.subscription.on('reconnecting', () => {
       logger.info("Redis is reconnecting");
     });
 
-    this.client.subscribe(`${this.ns}:rt:${this.qname}`);
+    this.subscription.subscribe(`${this.ns}:rt:${this.qname}`);
     this.rsmq = new RedisSMQ({
       host: environment.redis.host,
       port: environment.redis.port,
@@ -60,6 +62,8 @@ export class RedisConnector {
       })
       .catch(logger.error);
     RedisConnector._instance = this;
+
+
   }
 
   static getInstance(): RedisConnector {
@@ -84,5 +88,18 @@ export class RedisConnector {
     p.then(() => logger.debug("Sending " + JSON.stringify(toSend)));
     p.catch(logger.error);
     return p;
+  }
+
+  set(key: string, val: any) {
+    this.client.set(key, JSON.stringify(val));
+  }
+
+  get(key: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.client.get(key, (err, res) => {
+        if (err) return reject(err);
+        return resolve(res);
+      });
+    });
   }
 }
