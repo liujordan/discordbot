@@ -2,6 +2,7 @@ import axios from 'axios';
 import encodeurl from 'encodeurl';
 import {getLogger} from "./logger";
 import {RedisConnector} from './redisConnector';
+import mergeImg from 'merge-img';
 
 const REGION = 'GMS';
 const VERSION = '211.1.0';
@@ -15,6 +16,9 @@ export enum ItemCategory {
 }
 
 export class MaplestoryApi {
+
+  cols = 10;
+  rows = 30;
   private static _instance: MaplestoryApi;
   items = {};
   categories;
@@ -85,6 +89,86 @@ export class MaplestoryApi {
   getItemsByCategory(overallcat: ItemCategory, cat: string, subcat: string) {
     return this.items[overallcat].filter(i => {
       return i.typeInfo.category == cat && i.typeInfo.subCategory == subcat;
+    });
+  }
+
+  getItemIconPageRedisKey(overall, cat, subcat, page): string {
+    return `ms_icons_${overall}_${cat}_${subcat}_${page}`;
+  }
+
+  getItemIconPageCached(overall, cat, subcat, page): Promise<Buffer> {
+    return new Promise<Buffer>((resolve, reject) => {
+      let key = this.getItemIconPageRedisKey(overall, cat, subcat, page);
+      rc.get(key).then(res => {
+        if (res == null) {
+          logger.info(`Getting icons for ${overall}_${cat}_${subcat}_${page} from maplestory.io`);
+          this.getItemIconPage(overall, cat, subcat, page).then(buff => {
+            rc.set(key, buff.toString('base64')).catch(reject);
+            return resolve(buff);
+          })
+            .catch(reject);
+        } else {
+          logger.info(`Getting icons for ${overall}_${cat}_${subcat}_${page} from redis cache`);
+          resolve(Buffer.from(res, 'base64'));
+        }
+      });
+    });
+  }
+
+  getItemIconPage(overallcat, cat, subcat, page: number): Promise<Buffer> {
+    let buffers = [];
+    let urlPromises = [];
+    let rowPromises = [];
+
+    let start = page * this.cols * this.rows;
+
+    // make promise for each item icon
+    logger.debug("Making promise for each item icon");
+    let items = this.getItemsByCategory(overallcat, cat, subcat).slice(start, start + this.rows * this.cols);
+    items.forEach(i => {
+      let p = axios.get(getItemIconLinkById(i.id), {responseType: 'arraybuffer'});
+      urlPromises.push(p);
+    });
+    return new Promise((resolve, reject) => {
+      // save each item icon into a buffer
+      Promise.all(urlPromises.map(p => p.catch(e => {
+        logger.error(e);
+        return null;
+      })))
+        .then((results) => {
+          logger.debug("Got " + results.filter(r => r != null).length);
+          results.forEach(res => {
+            if (res == null) return;
+            let buff = Buffer.from(res.data, 'binary');
+            buffers.push(buff);
+          });
+
+          // make a row of icons, save the promise for a buffer
+          for (let i = 0; i < this.rows; i++) {
+            let buffs = buffers.slice(i * this.rows, i * this.rows + this.cols);
+            if (buffs.length < 1) break;
+            let p = new Promise((resolve, reject) => {
+              mergeImg(buffs).then(img => {
+                img.getBuffer('image/png', (err, res) => {
+                  if (err) return reject(err);
+                  resolve(res);
+                });
+              });
+            }).catch(logger.error);
+            rowPromises.push(p);
+          }
+          // merge all the rows into one and then send it
+          Promise.all(rowPromises).then(results => {
+            mergeImg(results, {direction: true}).then(img => {
+              img.getBuffer('image/png', (err, res) => {
+                if (err) reject(err);
+                resolve(res);
+              });
+            });
+          })
+            .catch(reject);
+        })
+        .catch(reject);
     });
   }
 

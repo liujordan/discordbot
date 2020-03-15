@@ -1,7 +1,7 @@
 import {BaseCommand} from "./baseCommand";
 import {RedisCommand} from "../utils/redisConnector";
-import {Message, TextChannel} from "discord.js";
-import {getItemIconLinkById, ItemCategory, MaplestoryApi} from "../utils/maplestoryApi";
+import {Message, MessageEmbed, TextChannel} from "discord.js";
+import {ItemCategory, MaplestoryApi} from "../utils/maplestoryApi";
 
 function capitalizeFirstLetter(str: string) {
   var splitStr = str.toLowerCase().split(' ');
@@ -17,93 +17,117 @@ function capitalizeFirstLetter(str: string) {
 const ms = MaplestoryApi.getInstance();
 
 export class Shop extends BaseCommand {
-  send2(channel: TextChannel, out: string[], cat: string, subcat: string, args: string[]) {
-    // TODO change this to use MessageEmbed instead of options
-    let itemIdx = 0;
-    if (cat !== "" && subcat !== "") {
-      let items = ms.getItemsByCategory(((<any>ItemCategory)[args[0]]), cat, subcat);
-      let options = {
-        embed: {
-          description: `${itemIdx + 1}/${items.length}`,
-          image: {
-            url: getItemIconLinkById(items[itemIdx].id)
-          }
-        }
-      };
-      channel.send("", options).then(msg => this.doTheThingWithTheMessage(msg, items, itemIdx)).catch(console.error);
-    } else {
-      channel.send(out).catch(console.error);
-    }
-  }
+  exampleString = `%shop equip armor glove [1234]`;
 
-  doTheThingWithTheMessage(msg: Message, items, itemIdx: number) {
+  // send2(channel: TextChannel, out: string[], cat: string, subcat: string, args: string[]) {
+  //   // TODO change this to use MessageEmbed instead of options
+  //   let itemIdx = 0;
+  //   if (cat !== "" && subcat !== "") {
+  //     let items = ms.getItemsByCategory(((<any>ItemCategory)[args[0]]), cat, subcat);
+  //     let options = {
+  //       embed: {
+  //         description: `${itemIdx + 1}/${items.length}`,
+  //         image: {
+  //           url: getItemIconLinkById(items[itemIdx].id)
+  //         }
+  //       }
+  //     };
+  //     channel.send("", options).then(msg => this.doTheThingWithTheMessage(msg, items, itemIdx)).catch(console.error);
+  //   } else {
+  //     channel.send(out).catch(console.error);
+  //   }
+  // }
+
+  doTheThingWithTheMessage(msg: Message, overall, cat, subcat, page: number) {
     msg.react("👈").catch(this.logger.error);
     msg.react("👉").catch(this.logger.error);
 
     const filter = (reaction, user) => {
       return ["👈", "👉"].includes(reaction.emoji.name) && !user.bot;
     };
+    let items = ms.getItemsByCategory(overall, cat, subcat);
+    let maxPage = Math.ceil(items.length / (ms.cols * ms.rows));
     const collector = msg.createReactionCollector(filter, {time: 60000});
     collector.on('collect', r => {
-      if (r.emoji.name == "👈") itemIdx -= 1;
-      if (r.emoji.name == "👉") itemIdx += 1;
-      if (itemIdx < 0) {
-        itemIdx += items.length;
+      if (r.emoji.name == "👈") page -= 1;
+      if (r.emoji.name == "👉") page += 1;
+      if (page < 0) {
+        page += maxPage;
       }
-      itemIdx %= items.length;
-
-      msg.edit("", {
-        embed: {
-          description: `${itemIdx + 1}/${items.length}`,
-          image: {
-            url: getItemIconLinkById(items[itemIdx].id)
-          }
-        }
+      page %= maxPage;
+      ms.getItemIconPageCached(overall, cat, subcat, page).then(buff => {
+        const embed = new MessageEmbed()
+          .attachFiles([{attachment: buff, name: `asdf${page}.png`}])
+          .setImage(`attachment://asdf${page}.png`)
+          .setDescription(`${page}/${maxPage}`);
+        msg.edit(embed).catch(this.logger.error);
       });
     });
   }
 
   execute(rc: RedisCommand) {
+    let idx = 0;
     this.getChannel(rc).then((channel: TextChannel) => {
       ms.getItemCategories().then(categories => {
-        let out = Object.keys(categories);
-        let cur: any = categories;
-        let itemid = "";
-        let cat: string = "";
-        let subCat: string = "";
-        rc.arguments.forEach(arg => {
-          arg = capitalizeFirstLetter(arg);
-          cur = cur[arg];
 
+        // check each argument is valid
+        let out = this.isValid(rc, categories);
+        console.log(out);
+        if (out.length > 0) return this.send(rc, out);
 
-          if (cur == null) {
-            out = ["No such category"];
-            return;
-          }
-
-
-          if (Array.isArray(cur)) {
-            // reached second last layer
-            out = cur.map(i => i.item1);
-            let temp = {};
-            cur.forEach(i => {
-              temp[i.item1] = {itemLow: i.item2, itemHigh: i.item3};
-            });
-            cur = temp;
-            cat = arg;
-          } else if (cur.itemLow) {
-            // reached last layer
-            out = [];
-            itemid = cur.itemLow;
-            subCat = arg;
-            return;
-          } else {
-            // reached every other layer above
-            out = Object.keys(cur);
-          }
-        });
-        this.send2(channel, out, cat, subCat, rc.arguments);
+        // get the page number
+        if (rc.arguments.length == 4 && /^\d*$/.test(rc.arguments[3])) {
+          idx = parseInt(rc.arguments[3]);
+        }
+        rc.arguments = rc.arguments.map(capitalizeFirstLetter);
+        let items = ms.getItemsByCategory(ItemCategory.equip, rc.arguments[1], rc.arguments[2]);
+        ms.getItemIconPageCached(ItemCategory.equip, rc.arguments[1], rc.arguments[2], idx)
+          .then(buff => {
+            const embed = new MessageEmbed()
+              .attachFiles([{attachment: buff, name: `asdf${idx}.png`}])
+              .setImage(`attachment://asdf${idx}.png`)
+              .setDescription(`${idx}/${Math.ceil(items.length / (ms.cols * ms.rows))}`);
+            channel.send(embed)
+              .then(msg => {
+                // this.doTheThingWithTheMessage(msg, ItemCategory.equip, rc.arguments[1], rc.arguments[2], idx);
+              })
+              .catch(this.logger.error);
+          })
+          .catch(this.logger.error);
       });
     });
+  }
+
+  // stupid. returns a the error string to send if the valid is not valid
+  private isValid(rc: RedisCommand, categories: any): string[] {
+    let out = Object.keys(categories);
+    let cur: any = categories;
+    for (let arg of rc.arguments) {
+      arg = capitalizeFirstLetter(arg);
+      cur = cur[arg];
+
+      if (cur == null) {
+        return ["No such category"];
+      }
+
+
+      if (Array.isArray(cur)) {
+        // reached second last layer
+        out = cur.map(i => i.item1);
+        let temp = {};
+        cur.forEach(i => {
+          temp[i.item1] = {itemLow: i.item2, itemHigh: i.item3};
+        });
+        cur = temp;
+      } else if (cur.itemLow) {
+        // reached last layer
+        out = [];
+        return [];
+      } else {
+        // reached every other layer above
+        out = Object.keys(cur);
+      }
+    }
+    return out;
   }
 }

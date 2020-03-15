@@ -15,9 +15,11 @@
   "dependencies": {
     "@types/mongodb": "^3.5.2",
     "axios": "^0.19.2",
+    "btoa": "^1.2.1",
     "discord-command-parser": "^1.3.3",
     "discord.js": "^12.0.2",
     "encodeurl": "^1.0.2",
+    "merge-img": "^2.1.3",
     "mongodb": "^3.5.5",
     "request": "^2.88.0",
     "rsmq": "^0.12.0",
