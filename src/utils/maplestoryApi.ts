@@ -181,20 +181,23 @@ export class MaplestoryApi {
     logger.debug(`Generating page image for ${overallcat} ${cat} ${subcat} page ${page}`);
 
     // make promise for each item icon
-    let items = this.getItemsByCategory(overallcat, cat, subcat).slice(start, start + cols * rows);
+    let items = this.getItemsByCategory(overallcat, cat, subcat);
     let urlPromises: Promise<Item>[] = items.map(i => this.getItem(i.id));
 
     return Promise.all(urlPromises.map(p => p.catch(e => null)))
       .then(results => {
-        return Promise.all<Jimp>(results.map(i => {
-          if (i != null) return Jimp.read(getIcon(i));
-          return new Jimp(iconHeight, iconWidth);
-        }));
+        return Promise.all<Jimp>(results
+          .filter(r => r != null)
+          .slice(start, start + cols * rows)
+          .map(i => {
+            if (i != null) return Jimp.read(getIcon(i));
+            return new Jimp(iconHeight, iconWidth);
+          }));
       })
       .then(jimps => {
         let x = 0;
         let y = 0;
-        let canvas = new Jimp(cols * iconWidth, Math.ceil(items.length / cols) * iconHeight);
+        let canvas = new Jimp(cols * iconWidth, rows * iconHeight);
         jimps.map((j: Jimp) => j.contain(iconWidth, iconHeight)).forEach(j => {
           canvas.blit(j, x * iconWidth, y * iconHeight);
           x += 1;
