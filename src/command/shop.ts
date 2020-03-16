@@ -1,7 +1,8 @@
 import {BaseCommand} from "./baseCommand";
 import {RedisCommand} from "../utils/redisConnector";
 import {Message, MessageEmbed, TextChannel} from "discord.js";
-import {cols, MaplestoryApi, rows} from "../utils/maplestoryApi";
+import {cols, getIcon, Item, MaplestoryApi, rows} from "../utils/maplestoryApi";
+import Jimp from 'jimp';
 
 function capitalizeFirstLetter(str: string) {
   var splitStr = str.split(' ');
@@ -14,59 +15,46 @@ function capitalizeFirstLetter(str: string) {
   return splitStr.join(' ');
 }
 
+let buy = "✅";
+let sell = "🚫";
+
 const ms = MaplestoryApi.getInstance();
 
 export class Shop extends BaseCommand {
-  exampleString = `%shop equip armor glove [1234]`;
+  exampleString = `%shop setup other chair 1 0:0`;
 
-  // send2(channel: TextChannel, out: string[], cat: string, subcat: string, args: string[]) {
-  //   // TODO change this to use MessageEmbed instead of options
-  //   let itemIdx = 0;
-  //   if (cat !== "" && subcat !== "") {
-  //     let items = ms.getItemsByCategory(((<any>ItemCategory)[args[0]]), cat, subcat);
-  //     let options = {
-  //       embed: {
-  //         description: `${itemIdx + 1}/${items.length}`,
-  //         image: {
-  //           url: getItemIconLinkById(items[itemIdx].id)
-  //         }
-  //       }
-  //     };
-  //     channel.send("", options).then(msg => this.doTheThingWithTheMessage(msg, items, itemIdx)).catch(console.error);
-  //   } else {
-  //     channel.send(out).catch(console.error);
-  //   }
-  // }
-
-  doTheThingWithTheMessage(msg: Message, overall, cat, subcat, page: number) {
-    msg.react("👈").catch(this.logger.error);
-    msg.react("👉").catch(this.logger.error);
+  doTheThingWithTheMessage(msg: Message, item: Item) {
+    msg.react(buy).catch(this.logger.error);
+    msg.react(sell).catch(this.logger.error);
 
     const filter = (reaction, user) => {
-      return ["👈", "👉"].includes(reaction.emoji.name) && !user.bot;
+      return [buy, sell].includes(reaction.emoji.name) && !user.bot;
     };
-    let items = ms.getItemsByCategory(overall, cat, subcat);
-    let maxPage = Math.floor(items.length / (cols * rows));
-    const collector = msg.createReactionCollector(filter, {time: 60000});
-    collector.on('collect', r => {
-      if (r.emoji.name == "👈") page -= 1;
-      if (r.emoji.name == "👉") page += 1;
-      if (page < 0) {
-        page += maxPage;
-      }
-      page %= maxPage;
-      ms.getItemIconPageCached(overall, cat, subcat, page).then(buff => {
-        const embed = new MessageEmbed()
-          .attachFiles([{attachment: buff, name: `asdf${page}.png`}])
-          .setImage(`attachment://asdf${page}.png`)
-          .setDescription(`${page}/${maxPage}`);
-        msg.edit(embed).catch(this.logger.error);
-      });
+    // let items = ms.getItemsByCategory(overall, cat, subcat);
+    // let maxPage = Math.floor(items.length / (cols * rows));
+    const collector = msg.createReactionCollector(filter, {max: 1, time: 60000});
+    collector.on('collect', (r, u) => {
+      if (r.emoji.name == buy) msg.channel.send(`<@${u.id}> bought ${item.description.name}`);
+      if (r.emoji.name == sell) msg.channel.send(`<@${u.id}> sold ${item.description.name}`);
+      // if (r.emoji.name == "👈") page -= 1;
+      // if (r.emoji.name == "👉") page += 1;
+      // if (page < 0) {
+      //   page += maxPage;
+      // }
+      // page %= maxPage;
+      // ms.getItemIconPageCached(overall, cat, subcat, page).then(buff => {
+      //   const embed = new MessageEmbed()
+      //     .attachFiles([{attachment: buff, name: `asdf${page}.png`}])
+      //     .setImage(`attachment://asdf${page}.png`)
+      //     .setDescription(`${page}/${maxPage}`);
+      //   msg.edit(embed).catch(this.logger.error);
+      // });
     });
   }
 
   execute(rc: RedisCommand) {
     let idx = 0;
+    let x, y;
     this.getChannel(rc).then((channel: TextChannel) => {
       ms.getItemCategories().then(categories => {
 
@@ -77,10 +65,37 @@ export class Shop extends BaseCommand {
         if (out.length > 0) return this.send(rc, out);
 
         // get the page number
-        if (rc.arguments.length == 4 && /^\d*$/.test(rc.arguments[3])) {
+        if (rc.arguments.length >= 4 && /^\d*$/.test(rc.arguments[3])) {
           idx = parseInt(rc.arguments[3]);
         }
+
         let items = ms.getItemsByCategory(rc.arguments[0], rc.arguments[1], rc.arguments[2]);
+
+        // get the x:y coords of the thing
+        if (rc.arguments.length >= 5 && /^[0-9]*:[0-9]*$/.test(rc.arguments[4])) {
+          console.log("here");
+          let thing = rc.arguments[4].split(":");
+          x = parseInt(thing[0]);
+          y = parseInt(thing[1]);
+          ms.getItem(items[idx * cols * rows + y * cols + x].id).then(item => {
+            Jimp.read(getIcon(item)).then(jimp => {
+              jimp.contain(70, 70).getBuffer("image/png", (err, buff) => {
+                let embed = new MessageEmbed()
+                  .setTitle(item.description.name)
+                  .setDescription(item.description.description)
+                  .attachFiles([{attachment: buff, name: `${item.id}.png`}])
+                  .setImage(`attachment://${item.id}.png`)
+                  .setFooter(`Would you like to buy this?`);
+                channel.send(embed)
+                  .then(msg => {
+                    this.doTheThingWithTheMessage(msg, item);
+                  })
+                  .catch(this.logger.error);
+              });
+            });
+          });
+          return;
+        }
         ms.getItemIconPageCached(rc.arguments[0], rc.arguments[1], rc.arguments[2], idx)
           .then(buff => {
             const embed = new MessageEmbed()
