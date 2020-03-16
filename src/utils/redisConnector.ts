@@ -3,8 +3,7 @@ import {environment} from "../config/environment";
 import redis from 'redis';
 import {ParsedMessage} from "discord-command-parser";
 import {getLogger} from "./logger";
-
-const logger = getLogger('redis');
+import axios, {AxiosRequestConfig} from "axios";
 
 export interface RedisCommand {
   command: string
@@ -18,6 +17,8 @@ export interface RedisCommand {
     channel_type: string
   }
 }
+
+const logger = getLogger('redis');
 
 export class RedisConnector {
   private static _instance: RedisConnector;
@@ -62,8 +63,32 @@ export class RedisConnector {
       })
       .catch(logger.error);
     RedisConnector._instance = this;
+  }
 
+  // this should only be used for request that serves static data
+  cachedRequest<T>(req: AxiosRequestConfig): Promise<T> {
+    return new Promise((resolve, reject) => {
+      this.client.get(req.url, ((err, reply) => {
+        if (err) return reject(err);
+        // cache hit end here and return
+        if (reply != null) {
+          logger.debug(`Getting ${req.url} from cache`);
+          return resolve(JSON.parse(reply) as T);
+        }
 
+        // cache miss, make the request and save the response iff status code is 200
+        logger.debug(`Getting ${req.url} from remote`);
+        axios.request<T>(req)
+          .then(res => {
+            if (res.status === 200) this.client.set(req.url, JSON.stringify(res.data), err1 => err1 ? reject(err1) : "");
+            resolve(res.data);
+          })
+          .catch(err => {
+            logger.debug(`Getting ${req.url} failed with ${err}`);
+            reject(err);
+          });
+      }));
+    });
   }
 
   static getInstance(): RedisConnector {

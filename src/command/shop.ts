@@ -1,10 +1,10 @@
 import {BaseCommand} from "./baseCommand";
 import {RedisCommand} from "../utils/redisConnector";
 import {Message, MessageEmbed, TextChannel} from "discord.js";
-import {ItemCategory, MaplestoryApi} from "../utils/maplestoryApi";
+import {cols, MaplestoryApi, rows} from "../utils/maplestoryApi";
 
 function capitalizeFirstLetter(str: string) {
-  var splitStr = str.toLowerCase().split(' ');
+  var splitStr = str.split(' ');
   for (var i = 0; i < splitStr.length; i++) {
     // You do not need to check if i is larger than splitStr length, as your for does that for you
     // Assign it back to the array
@@ -46,7 +46,7 @@ export class Shop extends BaseCommand {
       return ["👈", "👉"].includes(reaction.emoji.name) && !user.bot;
     };
     let items = ms.getItemsByCategory(overall, cat, subcat);
-    let maxPage = Math.ceil(items.length / (ms.cols * ms.rows));
+    let maxPage = Math.floor(items.length / (cols * rows));
     const collector = msg.createReactionCollector(filter, {time: 60000});
     collector.on('collect', r => {
       if (r.emoji.name == "👈") page -= 1;
@@ -71,22 +71,22 @@ export class Shop extends BaseCommand {
       ms.getItemCategories().then(categories => {
 
         // check each argument is valid
+        rc.arguments = rc.arguments.map(capitalizeFirstLetter);
+
         let out = this.isValid(rc, categories);
-        console.log(out);
         if (out.length > 0) return this.send(rc, out);
 
         // get the page number
         if (rc.arguments.length == 4 && /^\d*$/.test(rc.arguments[3])) {
           idx = parseInt(rc.arguments[3]);
         }
-        rc.arguments = rc.arguments.map(capitalizeFirstLetter);
-        let items = ms.getItemsByCategory(ItemCategory.equip, rc.arguments[1], rc.arguments[2]);
-        ms.getItemIconPageCached(ItemCategory.equip, rc.arguments[1], rc.arguments[2], idx)
+        let items = ms.getItemsByCategory(rc.arguments[0], rc.arguments[1], rc.arguments[2]);
+        ms.getItemIconPageCached(rc.arguments[0], rc.arguments[1], rc.arguments[2], idx)
           .then(buff => {
             const embed = new MessageEmbed()
               .attachFiles([{attachment: buff, name: `asdf${idx}.png`}])
               .setImage(`attachment://asdf${idx}.png`)
-              .setDescription(`${idx}/${Math.ceil(items.length / (ms.cols * ms.rows))}`);
+              .setDescription(`${idx}/${Math.floor(items.length / (cols * rows))}`);
             channel.send(embed)
               .then(msg => {
                 // this.doTheThingWithTheMessage(msg, ItemCategory.equip, rc.arguments[1], rc.arguments[2], idx);
@@ -102,6 +102,7 @@ export class Shop extends BaseCommand {
   private isValid(rc: RedisCommand, categories: any): string[] {
     let out = Object.keys(categories);
     let cur: any = categories;
+
     for (let arg of rc.arguments) {
       arg = capitalizeFirstLetter(arg);
       cur = cur[arg];
