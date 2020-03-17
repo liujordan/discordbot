@@ -11,6 +11,7 @@ import {Me} from "./me";
 import {MongoConnector} from "../utils/mongoConnector";
 import {Shop} from "./shop";
 import {Test} from "./test";
+import {Inv} from "./inv";
 
 const logger = getLogger('commands');
 const redis = RedisConnector.getInstance();
@@ -26,6 +27,7 @@ export class CommandHandler {
     this.addCommand('define', new Define(bot, mc));
     this.addCommand('me', new Me(bot, mc));
     this.addCommand('shop', new Shop(bot, mc));
+    this.addCommand('inv', new Inv(bot, mc));
     if (process.env.DISCORDBOT_ENV !== 'production') {
       this.addCommand('test', new Test(bot, mc));
     }

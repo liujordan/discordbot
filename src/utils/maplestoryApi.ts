@@ -1,4 +1,3 @@
-import axios from 'axios';
 import encodeurl from 'encodeurl';
 import {getLogger} from "./logger";
 import {RedisConnector} from './redisConnector';
@@ -77,24 +76,370 @@ export interface Item {
   typeInfo?: TypeInfo;
 }
 
+export interface Accessory {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Armor {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Other {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface OneHandedWeapon {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface SecondaryWeapon {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface TwoHandedWeapon {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Character {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Monster {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Mount {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Equip {
+  Accessory: Accessory[];
+  Armor: Armor[];
+  Other: Other[];
+  "One-Handed Weapon": OneHandedWeapon[];
+  "Secondary Weapon": SecondaryWeapon[];
+  "Two-Handed Weapon": TwoHandedWeapon[];
+  Character: Character[];
+  Monster: Monster[];
+  Mount: Mount[];
+}
+
+export interface Consumable {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface ArmorScroll {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface WeaponScroll {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface SpecialScroll {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface CharacterModification {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Tablet {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Projectile {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface MonsterFamiliar {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Recipe {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Other2 {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Use {
+  Consumable: Consumable[];
+  "Armor Scroll": ArmorScroll[];
+  "Weapon Scroll": WeaponScroll[];
+  "Special Scroll": SpecialScroll[];
+  "Character Modification": CharacterModification[];
+  Tablet: Tablet[];
+  Projectile: Projectile[];
+  "Monster/Familiar": MonsterFamiliar[];
+  Recipe: Recipe[];
+  Other: Other2[];
+}
+
+export interface Other3 {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Commerci {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface EvolutionLab {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Nebulite {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Setup {
+  Other: Other3[];
+  Commerci: Commerci[];
+  "Evolution Lab": EvolutionLab[];
+  Nebulite: Nebulite[];
+}
+
+export interface Other4 {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface CashShop {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Crafting {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Etc {
+  Other: Other4[];
+  "Cash Shop": CashShop[];
+  Crafting: Crafting[];
+}
+
+export interface TimeSaver {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface RandomReward {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface EquipmentModification {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface CharacterModification2 {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Weapon {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Accessory2 {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Appearance {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Pet {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface FreeMarket {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface MessengerAndSocial {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Miscellaneous {
+  item1: string;
+  item2: number;
+  item3: number;
+}
+
+export interface Cash {
+  "Time Saver": TimeSaver[];
+  "Random Reward": RandomReward[];
+  "Equipment Modification": EquipmentModification[];
+  "Character Modification": CharacterModification2[];
+  Weapon: Weapon[];
+  Accessory: Accessory2[];
+  Appearance: Appearance[];
+  Pet: Pet[];
+  "Free Market": FreeMarket[];
+  "Messenger and Social": MessengerAndSocial[];
+  Miscellaneous: Miscellaneous[];
+}
+
+export interface Category {
+  Equip: Equip;
+  Use: Use;
+  Setup: Setup;
+  Etc: Etc;
+  Cash: Cash;
+}
+
+export interface TypeInfo {
+  overallCategory: string;
+  category: string;
+  subCategory: string;
+  lowItemId: number;
+  highItemId: number;
+}
+
+export interface CategoryItem {
+  isCash: boolean;
+  name: string;
+  desc: string;
+  id: number;
+  typeInfo: TypeInfo;
+}
+
+export interface ItemsManager {
+  equip?: CategoryItem[]
+  use?: CategoryItem[]
+  setup?: CategoryItem[]
+  etc?: CategoryItem[]
+  cash?: CategoryItem[]
+}
+
+export class IconGridBuilder {
+  rows: number = rows;
+  cols: number = cols;
+  iconHeight: number = iconHeight;
+  iconWidth: number = iconWidth;
+  items: Item[];
+
+  constructor(items: Item[]) {
+    this.items = items;
+  }
+
+  setSize(w: number, h: number): IconGridBuilder {
+    this.rows = h;
+    this.cols = w;
+    return this;
+  }
+
+  setIconSize(w: number, h: number): IconGridBuilder {
+    this.iconHeight = h;
+    this.iconWidth = w;
+    return this;
+  }
+
+  getBuffer(): Promise<Buffer> {
+    let canvas = new Jimp(this.iconWidth * this.cols, this.iconHeight * this.rows);
+    return Promise.all<Jimp>(this.items.map(i => {
+      if (i == null || i.metaInfo == null) return new Promise(resolve => resolve(new Jimp(iconWidth, iconHeight)));
+      return Jimp.read(getIcon(i));
+    })).then(jimps => {
+      let x = 0;
+      let y = 0;
+      jimps.map(i => {
+        return i.contain(this.iconWidth, this.iconHeight);
+      }).forEach(i => {
+        canvas.blit(i, x * this.iconWidth, y * this.iconHeight);
+        x += 1;
+        y = y + Math.floor(x / this.cols);
+        x = x % this.cols;
+      });
+      return new Promise((resolve, reject) => {
+        canvas.getBuffer('image/png', ((err, value) => {
+          if (err) return reject(err);
+          return resolve(value);
+        }));
+      });
+    });
+  }
+}
 
 export class MaplestoryApi {
   private static _instance: MaplestoryApi;
 
-  items = {};
-  categories;
-  redisKeys = {
-    category: {
-      equip: "ms_category_equip",
-      use: "ms_category_use",
-      setup: "ms_category_setup",
-      etc: "ms_category_etc",
-      cash: "ms_category_cash"
-    },
-    categories: "ms_categories"
-  };
+  items: ItemsManager;
+  categories: Category;
 
   constructor() {
+    this.items = {};
+    logger.info(`Warming item categories`);
     this.fetchItemCategory(ItemCategory.equip);
     this.fetchItemCategory(ItemCategory.use);
     this.fetchItemCategory(ItemCategory.setup);
@@ -103,47 +448,24 @@ export class MaplestoryApi {
     MaplestoryApi._instance = this;
   }
 
-  getItemCategories() {
+  getItemCategories(): Promise<Category> {
     if (this.categories != null) {
-      return new Promise((resolve, reject) => resolve(this.categories));
+      return new Promise(resolve => resolve(this.categories));
     }
-
-    return new Promise((resolve, reject) => {
-      rc.get(this.redisKeys.categories)
-        .then(res => {
-          if (res === null) {
-            axios.get(url + `/${region}/${version}/item/category`)
-              .then(res => {
-                let data = res.data;
-                rc.set(this.redisKeys.categories, data).catch(logger.error);
-                this.categories = data;
-                resolve(data);
-              })
-              .catch(reject);
-          } else {
-            resolve(JSON.parse(res));
-          }
-        })
-        .catch(reject);
+    return rc.cachedRequest<Category>({
+      url: `${url}/${region}/${version}/item/category`
+    }).then(result => {
+      this.categories = result;
+      return new Promise(resolve => resolve(result));
     });
   }
 
   private fetchItemCategory(category: string) {
-    // get all items either from cache or from maplestory.io
-    logger.info(`Fetching ${category} data...`);
-    let categoryKey = this.redisKeys.category[category];
-    rc.get(categoryKey).then(res => {
-      if (res == null) {
-        axios.get(`https://maplestory.io/api/${region}/${version}/item/category/${category}`).then(res => {
-          rc.set(categoryKey, res.data);
-          this.items[category] = res.data;
-          logger.info(`Fetched ${category} data from maplestory.io`);
-        });
-      } else {
-        logger.info(`Fetched ${category} data from redis cache`);
-        this.items[category] = JSON.parse(res);
-      }
-    });
+    rc.cachedRequest<CategoryItem[]>({
+      url: `${url}/${region}/${version}/item/category/${category}`
+    }).then(items => {
+      this.items[category] = items;
+    }).catch(logger.error);
   }
 
   getItemsByCategory(overallcat: string, cat: string, subcat: string): Item[] {
@@ -152,13 +474,9 @@ export class MaplestoryApi {
     });
   }
 
-  getItemIconPageRedisKey(overall, cat, subcat, page): string {
-    return `ms_icons_${overall}_${cat}_${subcat}_${page}`;
-  }
-
   getItemIconPageCached(overall, cat, subcat, page): Promise<Buffer> {
     return new Promise<Buffer>((resolve, reject) => {
-      let key = this.getItemIconPageRedisKey(overall, cat, subcat, page);
+      let key = `ms_icons_${overall}_${cat}_${subcat}_${page}`;
       rc.get(key).then(res => {
         if (res == null) {
           logger.info(`Getting icons for ${overall}_${cat}_${subcat}_${page} from maplestory.io`);
@@ -180,43 +498,28 @@ export class MaplestoryApi {
     logger.debug(`Generating page image for ${overallcat} ${cat} ${subcat} page ${page}`);
 
     // make promise for each item icon
-    let items = this.getItemsByCategory(overallcat, cat, subcat).slice(start, start + cols * rows)
-    ;
+    let items = this.getItemsByCategory(overallcat, cat, subcat).slice(start, start + cols * rows);
     let urlPromises: Promise<Item>[] = items.map(i => this.getItem(i.id));
 
     return Promise.all(urlPromises.map(p => p.catch(e => null)))
-      .then(results => {
-        return Promise.all<Jimp>(results
-          .map(i => {
-            if (i != null) {
-              try {
-                return Jimp.read(getIcon(i));
-              } catch {
-                return new Jimp(iconHeight, iconWidth);
-              }
-            }
-            return new Jimp(iconHeight, iconWidth);
-          }));
-      })
-      .then(jimps => {
-        let x = 0;
-        let y = 0;
-        let canvas = new Jimp(cols * iconWidth, rows * iconHeight);
-        jimps.map((j: Jimp) => j.contain(iconWidth, iconHeight)).forEach(j => {
-          canvas.blit(j, x * iconWidth, y * iconHeight);
-          x += 1;
-          y += Math.floor(x / cols);
-          x = x % cols;
-        });
-        return new Promise<Buffer>((resolve, reject) => {
-          canvas.getBuffer('image/png', ((err, value) => {
-            if (err) {
-              logger.error("Failed to build image with " + `${err}`);
-              return reject(err);
-            }
-            return resolve(value);
-          }));
-        });
+      // .then(items => {
+      //   return Promise.all<Jimp>(
+      //     items.map(i => {
+      //       if (i != null) {
+      //         try {
+      //           return Jimp.read(getIcon(i));
+      //         } catch {
+      //           return new Jimp(iconHeight, iconWidth);
+      //         }
+      //       }
+      //       return new Jimp(iconHeight, iconWidth);
+      //     }));
+      // })
+      .then(items => {
+        return new IconGridBuilder(items)
+          .setSize(cols, rows)
+          .setIconSize(iconHeight, iconWidth)
+          .getBuffer();
       });
   }
 

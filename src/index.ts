@@ -74,6 +74,4 @@ bot.on('ready', () => {
   logger.info("Discord Client ready");
 });
 
-
 bot.login(environment.discord.auth.token).catch(logger.error);
-

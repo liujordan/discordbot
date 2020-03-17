@@ -3,6 +3,7 @@ import {RedisCommand} from "../utils/redisConnector";
 import {Message, MessageEmbed, TextChannel} from "discord.js";
 import {cols, getIcon, Item, MaplestoryApi, rows} from "../utils/maplestoryApi";
 import Jimp from 'jimp';
+import {MongoConnector} from "../utils/mongoConnector";
 
 function capitalizeFirstLetter(str: string) {
   var splitStr = str.split(' ');
@@ -19,13 +20,14 @@ let buy = "✅";
 let sell = "🚫";
 
 const ms = MaplestoryApi.getInstance();
+const mc = MongoConnector.getInstance();
 
 export class Shop extends BaseCommand {
   exampleString = `%shop setup other chair 1 0:0`;
 
   doTheThingWithTheMessage(msg: Message, item: Item) {
     msg.react(buy).catch(this.logger.error);
-    msg.react(sell).catch(this.logger.error);
+    // msg.react(sell).catch(this.logger.error);
 
     const filter = (reaction, user) => {
       return [buy, sell].includes(reaction.emoji.name) && !user.bot;
@@ -34,7 +36,10 @@ export class Shop extends BaseCommand {
     // let maxPage = Math.floor(items.length / (cols * rows));
     const collector = msg.createReactionCollector(filter, {max: 1, time: 60000});
     collector.on('collect', (r, u) => {
-      if (r.emoji.name == buy) msg.channel.send(`<@${u.id}> bought ${item.description.name}`);
+      if (r.emoji.name == buy) {
+        msg.channel.send(`<@${u.id}> bought ${item.description.name}`);
+        mc.addToInventory(u.id, item).catch(this.logger.error);
+      }
       if (r.emoji.name == sell) msg.channel.send(`<@${u.id}> sold ${item.description.name}`);
       // if (r.emoji.name == "👈") page -= 1;
       // if (r.emoji.name == "👉") page += 1;
