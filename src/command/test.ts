@@ -1,7 +1,7 @@
 import {environment} from '../config/environment';
 import {BaseCommand} from './baseCommand';
 import {RedisCommand} from "../utils/redisConnector";
-import {getIcon, Item, MaplestoryApi} from "../utils/maplestoryApi";
+import {getIcon, Item, MaplestoryApi} from "../maplestory/maplestoryApi";
 import {TextChannel} from "discord.js";
 import Jimp from 'jimp';
 

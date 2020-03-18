@@ -1,7 +1,7 @@
 import {BaseCommand} from "./baseCommand";
 import {RedisCommand} from "../utils/redisConnector";
 import {TextChannel} from "discord.js";
-import {Avatar, MaplestoryApi, renderLink} from "../utils/maplestoryApi";
+import {Avatar, MaplestoryApi, renderLink} from "../maplestory/maplestoryApi";
 
 const data = {
   "id": 1584088799827,

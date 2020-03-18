@@ -1,6 +1,6 @@
 import {Db, MongoClient} from 'mongodb';
 import {getLogger} from "./logger";
-import {Avatar, Item} from "./maplestoryApi";
+import {Avatar, Item} from "../maplestory/maplestoryApi";
 import {environment} from "../config/environment";
 
 const url = `mongodb://${environment.mongo.host}:${environment.mongo.port}`;

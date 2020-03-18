@@ -1,7 +1,7 @@
 import {BaseCommand} from "./baseCommand";
 import {RedisCommand} from "../utils/redisConnector";
 import {Message, MessageEmbed, TextChannel} from "discord.js";
-import {cols, getIcon, Item, MaplestoryApi, rows} from "../utils/maplestoryApi";
+import {defaultIconPageCols, defaultIconPageRows, getIcon, Item, MaplestoryApi} from "../maplestory/maplestoryApi";
 import Jimp from 'jimp';
 import {MongoConnector} from "../utils/mongoConnector";
 
@@ -71,18 +71,19 @@ export class Shop extends BaseCommand {
 
         // get the page number
         if (rc.arguments.length >= 4 && /^\d*$/.test(rc.arguments[3])) {
-          idx = parseInt(rc.arguments[3]);
+          idx = parseInt(rc.arguments[3]) - 1;
+          if (idx < 0) return this.send(rc, "invalid page number");
         }
 
         let items = ms.getItemsByCategory(rc.arguments[0], rc.arguments[1], rc.arguments[2]);
 
         // get the x:y coords of the thing
         if (rc.arguments.length >= 5 && /^[0-9]*:[0-9]*$/.test(rc.arguments[4])) {
-          console.log("here");
           let thing = rc.arguments[4].split(":");
-          x = parseInt(thing[0]);
-          y = parseInt(thing[1]);
-          ms.getItem(items[idx * cols * rows + y * cols + x].id).then(item => {
+          x = parseInt(thing[0]) - 1;
+          y = parseInt(thing[1]) - 1;
+          if (x < 0 || y < 0) return this.send(rc, "invalid page number");
+          ms.getItem(items[idx * defaultIconPageCols * defaultIconPageRows + y * defaultIconPageCols + x].id).then(item => {
             Jimp.read(getIcon(item)).then(jimp => {
               jimp.contain(70, 70).getBuffer("image/png", (err, buff) => {
                 let embed = new MessageEmbed()
@@ -106,7 +107,7 @@ export class Shop extends BaseCommand {
             const embed = new MessageEmbed()
               .attachFiles([{attachment: buff, name: `asdf${idx}.png`}])
               .setImage(`attachment://asdf${idx}.png`)
-              .setDescription(`${idx}/${Math.floor(items.length / (cols * rows))}`);
+              .setDescription(`${idx + 1}/${Math.ceil(items.length / (defaultIconPageCols * defaultIconPageRows))}`);
             channel.send(embed)
               .then(msg => {
                 // this.doTheThingWithTheMessage(msg, ItemCategory.equip, rc.arguments[1], rc.arguments[2], idx);

@@ -1,8 +1,9 @@
 import {BaseCommand} from "./baseCommand";
 import {RedisCommand} from "../utils/redisConnector";
 import {MessageEmbed, TextChannel} from "discord.js";
-import {IconGridBuilder, MaplestoryApi} from "../utils/maplestoryApi";
+import {MaplestoryApi} from "../maplestory/maplestoryApi";
 import {MongoConnector} from "../utils/mongoConnector";
+import {IconGridBuilder} from "../maplestory/iconGridBuilder";
 
 
 const ms: MaplestoryApi = MaplestoryApi.getInstance();

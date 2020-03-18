@@ -1,18 +1,19 @@
 import encodeurl from 'encodeurl';
-import {getLogger} from "./logger";
-import {RedisConnector} from './redisConnector';
-import Jimp from 'jimp';
+import {getLogger} from "../utils/logger";
+import {RedisConnector} from '../utils/redisConnector';
+import {IconGridBuilder} from "./iconGridBuilder";
 
-const region = 'GMS';
-const version = '211.1.0';
-const url = `https://maplestory.io/api`;
+export const region = 'GMS';
+export const version = '211.1.0';
+export const url = `https://maplestory.io/api`;
+export const defaultIconWidth = 40;
+export const defaultIconHeight = 40;
+
+export const defaultIconPageCols = 10;
+export const defaultIconPageRows = 5;
+
 const logger = getLogger('maplestory');
 const rc = RedisConnector.getInstance();
-const iconWidth = 40;
-const iconHeight = 40;
-
-export const cols = 10;
-export const rows = 5;
 
 export enum ItemCategory {
   equip = 'equip', use = 'use', setup = 'setup', etc = 'etc', cash = 'cash'
@@ -382,55 +383,6 @@ export interface ItemsManager {
   cash?: CategoryItem[]
 }
 
-export class IconGridBuilder {
-  rows: number = rows;
-  cols: number = cols;
-  iconHeight: number = iconHeight;
-  iconWidth: number = iconWidth;
-  items: Item[];
-
-  constructor(items: Item[]) {
-    this.items = items;
-  }
-
-  setSize(w: number, h: number): IconGridBuilder {
-    this.rows = h;
-    this.cols = w;
-    return this;
-  }
-
-  setIconSize(w: number, h: number): IconGridBuilder {
-    this.iconHeight = h;
-    this.iconWidth = w;
-    return this;
-  }
-
-  getBuffer(): Promise<Buffer> {
-    let canvas = new Jimp(this.iconWidth * this.cols, this.iconHeight * this.rows);
-    return Promise.all<Jimp>(this.items.map(i => {
-      if (i == null || i.metaInfo == null) return new Promise(resolve => resolve(new Jimp(iconWidth, iconHeight)));
-      return Jimp.read(getIcon(i));
-    })).then(jimps => {
-      let x = 0;
-      let y = 0;
-      jimps.map(i => {
-        return i.contain(this.iconWidth, this.iconHeight);
-      }).forEach(i => {
-        canvas.blit(i, x * this.iconWidth, y * this.iconHeight);
-        x += 1;
-        y = y + Math.floor(x / this.cols);
-        x = x % this.cols;
-      });
-      return new Promise((resolve, reject) => {
-        canvas.getBuffer('image/png', ((err, value) => {
-          if (err) return reject(err);
-          return resolve(value);
-        }));
-      });
-    });
-  }
-}
-
 export class MaplestoryApi {
   private static _instance: MaplestoryApi;
 
@@ -494,31 +446,18 @@ export class MaplestoryApi {
   }
 
   getItemIconPage(overallcat, cat, subcat, page: number): Promise<Buffer> {
-    let start = page * cols * rows;
+    let start = page * defaultIconPageCols * defaultIconPageRows;
     logger.debug(`Generating page image for ${overallcat} ${cat} ${subcat} page ${page}`);
 
     // make promise for each item icon
-    let items = this.getItemsByCategory(overallcat, cat, subcat).slice(start, start + cols * rows);
+    let items = this.getItemsByCategory(overallcat, cat, subcat).slice(start, start + defaultIconPageCols * defaultIconPageRows);
     let urlPromises: Promise<Item>[] = items.map(i => this.getItem(i.id));
 
     return Promise.all(urlPromises.map(p => p.catch(e => null)))
-      // .then(items => {
-      //   return Promise.all<Jimp>(
-      //     items.map(i => {
-      //       if (i != null) {
-      //         try {
-      //           return Jimp.read(getIcon(i));
-      //         } catch {
-      //           return new Jimp(iconHeight, iconWidth);
-      //         }
-      //       }
-      //       return new Jimp(iconHeight, iconWidth);
-      //     }));
-      // })
       .then(items => {
         return new IconGridBuilder(items)
-          .setSize(cols, rows)
-          .setIconSize(iconHeight, iconWidth)
+          .setSize(defaultIconPageCols, defaultIconPageRows)
+          .setIconSize(defaultIconHeight, defaultIconWidth)
           .getBuffer();
       });
   }
