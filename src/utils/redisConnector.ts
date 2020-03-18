@@ -4,6 +4,8 @@ import redis from 'redis';
 import {ParsedMessage} from "discord-command-parser";
 import {getLogger} from "./logger";
 import axios, {AxiosRequestConfig} from "axios";
+import lru from 'redis-lru';
+import {promisify} from 'util';
 
 export interface RedisCommand {
   command: string
@@ -27,12 +29,17 @@ export class RedisConnector {
   subscription: redis.RedisClient;
   client: redis.RedisClient;
   ns = "rsmq";
+  pagesCache;
+  generalLru;
+
 
   constructor() {
     if (RedisConnector._instance) return;
     logger.info("Connecting redis...");
     this.subscription = redis.createClient({host: environment.redis.host,});
     this.client = redis.createClient({host: environment.redis.host,});
+    this.pagesCache = lru(this.client, {max: 100, namespace: 'pages'});
+    this.generalLru = lru(this.client, {max: 2000, namespace: 'general'});
 
     this.subscription.on('connect', () => {
       logger.info("Redis is connected");
@@ -66,28 +73,35 @@ export class RedisConnector {
   }
 
   // this should only be used for request that serves static data
-  cachedRequest<T>(req: AxiosRequestConfig): Promise<T> {
-    return new Promise((resolve, reject) => {
-      this.client.get(req.url, ((err, reply) => {
-        if (err) return reject(err);
-        // cache hit end here and return
-        if (reply != null) {
-          logger.debug(`Getting ${req.url} from cache`);
-          return resolve(JSON.parse(reply) as T);
-        }
+  cachedRequest<T>(req: AxiosRequestConfig, lru: boolean = false): Promise<T> {
+    let get;
+    let set;
+    if (lru) {
+      get = this.generalLru.get;
+      set = this.generalLru.set;
+    } else {
+      get = promisify(this.client.get).bind(this.client);
+      set = promisify(this.client.set).bind(this.client);
+    }
 
-        // cache miss, make the request and save the response iff status code is 200
-        logger.debug(`Getting ${req.url} from remote`);
-        axios.request<T>(req)
-          .then(res => {
-            if (res.status === 200) this.client.set(req.url, JSON.stringify(res.data), err1 => err1 ? reject(err1) : "");
-            resolve(res.data);
-          })
-          .catch(err => {
-            logger.debug(`Getting ${req.url} failed with ${err}`);
-            reject(err);
-          });
-      }));
+    return get(req.url).then(reply => {
+      // cache hit end here and return
+      if (reply != null) {
+        logger.debug(`Getting ${req.url} from ${lru ? "lru " : ""}cache`);
+        return new Promise(resolve => resolve(JSON.parse(reply) as T));
+      }
+
+      // cache miss, make the request and save the response iff status code is 200
+      logger.debug(`Getting ${req.url} from remote`);
+      return axios.request<T>(req)
+        .then(res => {
+          if (res.status === 200 && res.data.toString() != "null") set(req.url, JSON.stringify(res.data));
+          return new Promise<T>(resolve => resolve(res.data));
+        })
+        .catch(err => {
+          logger.debug(`Getting ${req.url} failed with ${err}`);
+          return err;
+        });
     });
   }
 
@@ -124,6 +138,10 @@ export class RedisConnector {
     });
   }
 
+  setIconPage(key: string, val: any): Promise<string> {
+    return this.pagesCache.set(key, JSON.stringify(val));
+  }
+
   get(key: string): Promise<string> {
     return new Promise((resolve, reject) => {
       this.client.get(key, (err, res) => {
@@ -131,5 +149,9 @@ export class RedisConnector {
         return resolve(res);
       });
     });
+  }
+
+  getIconPage(key: string): Promise<string> {
+    return this.pagesCache.get(key);
   }
 }

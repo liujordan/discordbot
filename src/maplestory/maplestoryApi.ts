@@ -429,11 +429,12 @@ export class MaplestoryApi {
   getItemIconPageCached(overall, cat, subcat, page): Promise<Buffer> {
     return new Promise<Buffer>((resolve, reject) => {
       let key = `ms_icons_${overall}_${cat}_${subcat}_${page}`;
-      rc.get(key).then(res => {
+      rc.getIconPage(key).then(res => {
+        console.log("here");
         if (res == null) {
           logger.info(`Getting icons for ${overall}_${cat}_${subcat}_${page} from maplestory.io`);
           this.getItemIconPage(overall, cat, subcat, page).then(buff => {
-            rc.set(key, buff.toString('base64')).catch(reject);
+            rc.setIconPage(key, buff.toString('base64')).catch(reject);
             return resolve(buff);
           })
             .catch(reject);
@@ -470,7 +471,7 @@ export class MaplestoryApi {
     return rc.cachedRequest<Item>({
       url: `${url}/${region}/${version}/item/${id}`,
       method: "GET"
-    });
+    }, true);
   }
 }
 
