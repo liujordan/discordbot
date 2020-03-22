@@ -39,7 +39,7 @@ export class CommandHandler {
     });
 
     // listen to new jobs
-    redis.subscription.on("message", (m) => {
+    redis.subscription.on("message", () => {
       rsmq.getQueueAttributes({qname: redis.qname}, (err, resp) => {
         if (err) return logger.error(err);
         this.dequeue(resp, redis, bot);
@@ -71,12 +71,17 @@ export class CommandHandler {
 
   getHelp(): string {
     let out = "";
+    out += `Version ${this.getVersion()}\n`;
     for (let c in this.commands) {
       let cmd: Command = this.commands[c];
       out += `\`${c}\`: ${cmd.helpString}\n`;
       if (cmd.exampleString != '') out += `\t_${cmd.exampleString}_\n`;
     }
     return out;
+  }
+
+  getVersion(): string {
+    return process.env.BOT_VERSION;
   }
 
   execute(msg: RedisCommand) {
