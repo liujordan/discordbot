@@ -4,11 +4,22 @@ on:
       - master
 name: Release
 jobs:
-  release-on-push:
+  #  release-on-push:
+  #    runs-on: ubuntu-latest
+  #    env:
+  #      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #    steps:
+  #      - uses: rymndhng/release-on-push-action@master
+  #        with:
+  #          strategy: minor
+  build:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: rymndhng/release-on-push-action@master
+      - uses: actions/checkout@master
         with:
-          strategy: minor
+          fetch-depth: '0'
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@1.17.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
