@@ -1,12 +1,9 @@
 import Jimp from "jimp";
-import {
-  defaultIconHeight,
-  defaultIconPageCols,
-  defaultIconPageRows,
-  defaultIconWidth,
-  getIcon,
-  Item
-} from "./maplestoryApi";
+import {defaultIconPageCols, defaultIconPageRows, getIcon} from "./maplestoryApi";
+import {Item} from "./item";
+
+export const defaultIconWidth = 40;
+export const defaultIconHeight = 40;
 
 export class IconGridBuilder {
   rows: number = defaultIconPageRows;
@@ -34,8 +31,10 @@ export class IconGridBuilder {
   getBuffer(): Promise<Buffer> {
     let canvas = new Jimp(this.iconWidth * this.cols, this.iconHeight * this.rows);
     return Promise.all<Jimp>(this.items.map(i => {
-      if (i == null || i.metaInfo == null) return new Promise(resolve => resolve(new Jimp(defaultIconWidth, defaultIconHeight)));
-      return Jimp.read(getIcon(i));
+      if (i == null) return new Promise(resolve => resolve(new Jimp(defaultIconWidth, defaultIconHeight)));
+      return getIcon(i).then(buff => {
+        return Jimp.read(buff);
+      });
     })).then(jimps => {
       let x = 0;
       let y = 0;

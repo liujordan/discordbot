@@ -1,9 +1,10 @@
 import {BaseCommand} from "./baseCommand";
 import {RedisCommand} from "../utils/redisConnector";
 import {Message, MessageEmbed, TextChannel} from "discord.js";
-import {defaultIconPageCols, defaultIconPageRows, getIcon, Item, MaplestoryApi} from "../maplestory/maplestoryApi";
+import {defaultIconPageCols, defaultIconPageRows, getIcon, MaplestoryApi} from "../maplestory/maplestoryApi";
 import Jimp from 'jimp';
 import {MongoConnector} from "../utils/mongoConnector";
+import {Item} from "../maplestory/item";
 
 function capitalizeFirstLetter(str: string) {
   var splitStr = str.split(' ');
@@ -84,21 +85,25 @@ export class Shop extends BaseCommand {
           y = parseInt(thing[1]) - 1;
           if (x < 0 || y < 0) return this.send(rc, "invalid page number");
           ms.getItem(items[idx * defaultIconPageCols * defaultIconPageRows + y * defaultIconPageCols + x].id).then(item => {
-            Jimp.read(getIcon(item)).then(jimp => {
-              jimp.contain(70, 70).getBuffer("image/png", (err, buff) => {
-                let embed = new MessageEmbed()
-                  .setTitle(item.description.name)
-                  .setDescription(item.description.description)
-                  .attachFiles([{attachment: buff, name: `${item.id}.png`}])
-                  .setImage(`attachment://${item.id}.png`)
-                  .setFooter(`Would you like to buy this?`);
-                channel.send(embed)
-                  .then(msg => {
-                    this.doTheThingWithTheMessage(msg, item);
-                  })
-                  .catch(this.logger.error);
+            getIcon(item)
+              .then(buff => {
+                return Jimp.read(buff);
+              })
+              .then(jimp => {
+                jimp.contain(70, 70).getBuffer("image/png", (err, buff) => {
+                  let embed = new MessageEmbed()
+                    .setTitle(item.description.name)
+                    .setDescription(item.description.description)
+                    .attachFiles([{attachment: buff, name: `${item.id}.png`}])
+                    .setImage(`attachment://${item.id}.png`)
+                    .setFooter(`Would you like to buy this?`);
+                  channel.send(embed)
+                    .then(msg => {
+                      this.doTheThingWithTheMessage(msg, item);
+                    })
+                    .catch(this.logger.error);
+                });
               });
-            });
           });
           return;
         }

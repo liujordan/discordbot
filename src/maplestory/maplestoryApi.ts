@@ -1,13 +1,13 @@
 import encodeurl from 'encodeurl';
 import {getLogger} from "../utils/logger";
 import {RedisConnector} from '../utils/redisConnector';
-import {IconGridBuilder} from "./iconGridBuilder";
+import {defaultIconHeight, defaultIconWidth, IconGridBuilder} from "./iconGridBuilder";
+import {AxiosResponse} from "axios";
+import {Item, TypeInfo} from "./item";
 
 export const region = 'GMS';
 export const version = '211.1.0';
 export const url = `https://maplestory.io/api`;
-export const defaultIconWidth = 40;
-export const defaultIconHeight = 40;
 
 export const defaultIconPageCols = 10;
 export const defaultIconPageRows = 5;
@@ -21,60 +21,6 @@ export enum ItemCategory {
 
 export interface Avatar {
   items: Item[]
-}
-
-export interface Description {
-  id: number;
-  name: string;
-  description: string;
-}
-
-export interface Value {
-  x: number;
-  y: number;
-  isEmpty: boolean;
-}
-
-export interface IconOrigin {
-  hasValue: boolean;
-  value: Value;
-}
-
-export interface IconRawOrigin {
-  hasValue: boolean;
-  value: Value;
-}
-
-export interface MetaInfo {
-  only: boolean;
-  cash: boolean;
-  mob: number;
-  iconRaw: string;
-  icon: string;
-  iconOrigin: IconOrigin;
-  iconRawOrigin: IconRawOrigin;
-  slotMax: number;
-  price: number;
-  notSale: boolean;
-  tradeBlock: boolean;
-  vslots: any[];
-  islots: any[];
-  setCompleteCount: number;
-}
-
-export interface TypeInfo {
-  overallCategory: string;
-  category: string;
-  subCategory: string;
-  lowItemId: number;
-  highItemId: number;
-}
-
-export interface Item {
-  id: number;
-  description?: Description;
-  metaInfo?: MetaInfo;
-  typeInfo?: TypeInfo;
 }
 
 export interface Accessory {
@@ -359,14 +305,6 @@ export interface Category {
   Cash: Cash;
 }
 
-export interface TypeInfo {
-  overallCategory: string;
-  category: string;
-  subCategory: string;
-  lowItemId: number;
-  highItemId: number;
-}
-
 export interface CategoryItem {
   isCash: boolean;
   name: string;
@@ -475,8 +413,19 @@ export class MaplestoryApi {
   }
 }
 
-export function getIcon(item: Item): Buffer {
-  return Buffer.from(item.metaInfo.icon, 'base64');
+export function getIcon(item: Item): Promise<Buffer> {
+  try {
+    return new Promise<Buffer>(resolve => resolve(Buffer.from(item.metaInfo.icon, 'base64')));
+  } catch {
+    try {
+      return rc.cachedRequest({url: `${url}/${region}/${version}/item/${item.id}/icon`}, true)
+        .then((res: AxiosResponse) => {
+          return new Promise(resolve => resolve(Buffer.from(res.data)));
+        });
+    } catch {
+      return null;
+    }
+  }
 }
 
 export function renderLink(items: Item[]): string {

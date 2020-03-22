@@ -1,9 +1,10 @@
 import {environment} from '../config/environment';
 import {BaseCommand} from './baseCommand';
 import {RedisCommand} from "../utils/redisConnector";
-import {getIcon, Item, MaplestoryApi} from "../maplestory/maplestoryApi";
+import {getIcon, MaplestoryApi} from "../maplestory/maplestoryApi";
 import {TextChannel} from "discord.js";
 import Jimp from 'jimp';
+import {Item} from "../maplestory/item";
 
 const ms = MaplestoryApi.getInstance();
 
@@ -18,7 +19,9 @@ export class Test extends BaseCommand {
       let things = [ms.getItem("3015432"), ms.getItem("3015432")];
       Promise.all<Item>(things).then(results => {
         let morethings: Promise<Jimp>[] = results.map(item => {
-          return Jimp.read(getIcon(item));
+          return getIcon(item).then(buff => {
+            return Jimp.read(buff);
+          });
         });
         Promise.all<Jimp>(morethings).then(results2 => {
           results2.map(r => r.contain(40, 40));
