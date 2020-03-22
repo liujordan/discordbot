@@ -4,24 +4,11 @@ on:
       - master
 name: Release
 jobs:
-  release:
+  release-on-push:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Tag and prepare release
-        id: tag_and_prepare_release
-        uses: K-Phoen/semver-release-action@master
+      - uses: rymndhng/release-on-push-action@master
         with:
-          release_branch: master
-          release_strategy: tag
-          tag_format: v%major%.%minor%.%patch%
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Create GitHub release
-        if: steps.tag_and_prepare_release.outputs.tag
-        uses: Roang-zero1/github-create-release-action@master
-        with:
-          created_tag: ${{ steps.tag_and_prepare_release.outputs.tag }}
-        #          version_regex: ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+
-        #          prerelease_regex: "^v\\.[[:digit:]]+\\.[[:digit:]]+-rc"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN}}
+          strategy: minor
