@@ -13,7 +13,7 @@ jobs:
   #        with:
   #          strategy: minor
   build:
-    runs-on: [ubuntu-latest, self-hosted]
+    runs-on: my-runner
     steps:
       - uses: actions/checkout@master
         with:
