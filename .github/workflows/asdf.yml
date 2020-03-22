@@ -25,8 +25,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: true
           DEFAULT_BUMP: patch
-      - name: ls
-        run: pwd && ls -al
+      - name: Deploy backend
+        uses: ./.github/actions/deploy
       - name: Publish to Registry
         uses: elgohr/Publish-Docker-Github-Action@master
         env:
