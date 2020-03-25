@@ -5,7 +5,7 @@ import {CommandHandler} from "./command/commandHandler";
 import {getLogger, level as logLevel} from "./utils/logger";
 import {Parser} from "./command/parser";
 import {RedisConnector} from "./utils/redisConnector";
-import {MongoConnector} from "./utils/mongoConnector";
+import {MongoConnector} from "./mongo/mongoConnector";
 
 const ES_NODE = environment.es.host;
 const bot: Client = new Client();

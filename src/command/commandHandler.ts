@@ -8,10 +8,11 @@ import {Define} from "./define";
 import {getChannel} from "../utils/utils";
 import {getLogger} from "../utils/logger";
 import {Me} from "./me";
-import {MongoConnector} from "../utils/mongoConnector";
+import {MongoConnector} from "../mongo/mongoConnector";
 import {Shop} from "./shop";
 import {Test} from "./test";
 import {Inv} from "./inv";
+import {User} from "../mongo/models/user.model";
 
 const logger = getLogger('commands');
 const redis = RedisConnector.getInstance();
@@ -33,10 +34,10 @@ export class CommandHandler {
     }
 
 
-    // take on all available jobs on create
-    rsmq.getQueueAttributes({qname: redis.qname}, (err, resp) => {
-      this.dequeue(resp, redis, bot);
-    });
+    // // take on all available jobs on create
+    // rsmq.getQueueAttributes({qname: redis.qname}, (err, resp) => {
+    //   this.dequeue(resp, redis, bot);
+    // });
 
     // listen to new jobs
     redis.subscription.on("message", () => {
@@ -52,15 +53,30 @@ export class CommandHandler {
       redis.rsmq.popMessage({qname: redis.qname}, (err, msg: QueueMessage) => {
         if (err) return logger.error(err);
         if (!msg.message) return;
+
         logger.debug("Recieved: " + msg.message);
-        let data: RedisCommand = JSON.parse(msg.message);
-        if (data.command == 'help') {
-          return getChannel(bot, data).then((channel: TextChannel) => {
+        let rc: RedisCommand = JSON.parse(msg.message);
+
+        if (rc.command == 'help') {
+          return getChannel(bot, rc).then((channel: TextChannel) => {
             channel.send(this.getHelp()).catch(logger.error);
           });
-        } else {
-          this.execute(data);
         }
+
+        const channelPromise = bot.channels.fetch(rc.data.channel_id);
+        const userPromise = User.findOne({discord_id: rc.data.user_id})
+          .then(u => {
+            if (u == null) {
+              return new User({discord_id: rc.data.user_id}).save();
+            }
+            return Promise.resolve(u);
+          });
+
+        Promise.all([userPromise, channelPromise]).then(results => {
+          rc.user = results[0];
+          rc.channel = (results[1] as TextChannel);
+          this.execute(rc);
+        });
       });
     }
   }

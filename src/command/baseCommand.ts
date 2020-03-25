@@ -2,7 +2,7 @@ import {RedisCommand} from "../utils/redisConnector";
 import {Channel, Client, TextChannel} from "discord.js";
 import {Logger} from "winston";
 import {getLogger} from "../utils/logger";
-import {MongoConnector} from "../utils/mongoConnector";
+import {MongoConnector} from "../mongo/mongoConnector";
 
 export interface Command {
   name: string

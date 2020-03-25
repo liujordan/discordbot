@@ -1,11 +1,11 @@
-import {Item} from "./item";
+import {MaplestoryItem} from "./maplestoryItem";
 
 export interface Inventory {
-  items: Item[]
+  items: MaplestoryItem[]
 }
 
 export interface Page {
-  items: Item[]
+  items: MaplestoryItem[]
 }
 
 export class InventoryManager {
@@ -15,5 +15,4 @@ export class InventoryManager {
   getPage(page: number) {
 
   }
-
 }

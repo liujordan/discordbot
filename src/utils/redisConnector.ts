@@ -6,6 +6,8 @@ import {getLogger} from "./logger";
 import axios, {AxiosRequestConfig} from "axios";
 import lru from 'redis-lru';
 import {promisify} from 'util';
+import {TextChannel} from "discord.js";
+import {IUser} from "../mongo/models/user.model";
 
 export interface RedisCommand {
   command: string
@@ -17,7 +19,9 @@ export interface RedisCommand {
     user_id: string
     content: string
     channel_type: string
-  }
+  },
+  channel?: TextChannel,
+  user?: IUser
 }
 
 const logger = getLogger('redis');
@@ -95,7 +99,7 @@ export class RedisConnector {
       logger.debug(`Getting ${req.url} from remote`);
       return axios.request<T>(req)
         .then(res => {
-          if (res.status === 200 && res.data.toString() != "null") set(req.url, JSON.stringify(res.data));
+          if (res.status === 200 && res.data != null) set(req.url, JSON.stringify(res.data));
           return new Promise<T>(resolve => resolve(res.data));
         })
         .catch(err => {

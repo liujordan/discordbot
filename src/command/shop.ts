@@ -1,10 +1,10 @@
 import {BaseCommand} from "./baseCommand";
 import {RedisCommand} from "../utils/redisConnector";
 import {Message, MessageEmbed, TextChannel} from "discord.js";
-import {defaultIconPageCols, defaultIconPageRows, getIcon, MaplestoryApi} from "../maplestory/maplestoryApi";
+import {defaultIconPageCols, defaultIconPageRows, getIcon, getItem, MaplestoryApi} from "../maplestory/maplestoryApi";
 import Jimp from 'jimp';
-import {MongoConnector} from "../utils/mongoConnector";
-import {Item} from "../maplestory/item";
+import {MongoConnector} from "../mongo/mongoConnector";
+import {MaplestoryItem} from "../maplestory/maplestoryItem";
 
 function capitalizeFirstLetter(str: string) {
   var splitStr = str.split(' ');
@@ -26,7 +26,7 @@ const mc = MongoConnector.getInstance();
 export class Shop extends BaseCommand {
   exampleString = `%shop setup other chair 1 0:0`;
 
-  doTheThingWithTheMessage(msg: Message, item: Item) {
+  doTheThingWithTheMessage(msg: Message, item: MaplestoryItem) {
     msg.react(buy).catch(this.logger.error);
     // msg.react(sell).catch(this.logger.error);
 
@@ -84,7 +84,7 @@ export class Shop extends BaseCommand {
           x = parseInt(thing[0]) - 1;
           y = parseInt(thing[1]) - 1;
           if (x < 0 || y < 0) return this.send(rc, "invalid page number");
-          ms.getItem(items[idx * defaultIconPageCols * defaultIconPageRows + y * defaultIconPageCols + x].id).then(item => {
+          getItem(items[idx * defaultIconPageCols * defaultIconPageRows + y * defaultIconPageCols + x].id).then(item => {
             getIcon(item)
               .then(buff => {
                 return Jimp.read(buff);
@@ -96,7 +96,7 @@ export class Shop extends BaseCommand {
                     .setDescription(item.description.description)
                     .attachFiles([{attachment: buff, name: `${item.id}.png`}])
                     .setImage(`attachment://${item.id}.png`)
-                    .setFooter(`Would you like to buy this?`);
+                    .setFooter((process.env.DISCORDBOT_ENV === 'production') ? `Would you like to buy this?` : `itemId: ${item.id}`);
                   channel.send(embed)
                     .then(msg => {
                       this.doTheThingWithTheMessage(msg, item);

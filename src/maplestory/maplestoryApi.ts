@@ -3,7 +3,7 @@ import {getLogger} from "../utils/logger";
 import {RedisConnector} from '../utils/redisConnector';
 import {defaultIconHeight, defaultIconWidth, IconGridBuilder} from "./iconGridBuilder";
 import {AxiosResponse} from "axios";
-import {Item, TypeInfo} from "./item";
+import {MaplestoryItem, TypeInfo} from "./maplestoryItem";
 
 export const region = 'GMS';
 export const version = '211.1.0';
@@ -19,8 +19,8 @@ export enum ItemCategory {
   equip = 'equip', use = 'use', setup = 'setup', etc = 'etc', cash = 'cash'
 }
 
-export interface Avatar {
-  items: Item[]
+export interface Avatar2 {
+  items: MaplestoryItem[]
 }
 
 export interface Accessory {
@@ -358,7 +358,7 @@ export class MaplestoryApi {
     }).catch(logger.error);
   }
 
-  getItemsByCategory(overallcat: string, cat: string, subcat: string): Item[] {
+  getItemsByCategory(overallcat: string, cat: string, subcat: string): MaplestoryItem[] {
     return this.items[overallcat.toLowerCase()].filter(i => {
       return i.typeInfo.category == cat && i.typeInfo.subCategory == subcat;
     });
@@ -390,7 +390,7 @@ export class MaplestoryApi {
 
     // make promise for each item icon
     let items = this.getItemsByCategory(overallcat, cat, subcat).slice(start, start + defaultIconPageCols * defaultIconPageRows);
-    let urlPromises: Promise<Item>[] = items.map(i => this.getItem(i.id));
+    let urlPromises: Promise<MaplestoryItem>[] = items.map(i => getItem(i.id));
 
     return Promise.all(urlPromises.map(p => p.catch(e => null)))
       .then(items => {
@@ -404,16 +404,16 @@ export class MaplestoryApi {
   static getInstance(): MaplestoryApi {
     return MaplestoryApi._instance || new MaplestoryApi();
   }
-
-  getItem(id): Promise<Item> {
-    return rc.cachedRequest<Item>({
-      url: `${url}/${region}/${version}/item/${id}`,
-      method: "GET"
-    }, true);
-  }
 }
 
-export function getIcon(item: Item): Promise<Buffer> {
+export function getItem(id): Promise<MaplestoryItem> {
+  return rc.cachedRequest<MaplestoryItem>({
+    url: `${url}/${region}/${version}/item/${id}`,
+    method: "GET"
+  }, true);
+}
+
+export function getIcon(item: MaplestoryItem): Promise<Buffer> {
   try {
     return new Promise<Buffer>(resolve => resolve(Buffer.from(item.metaInfo.icon, 'base64')));
   } catch {
@@ -428,7 +428,7 @@ export function getIcon(item: Item): Promise<Buffer> {
   }
 }
 
-export function renderLink(items: Item[]): string {
+export function renderLink(items: MaplestoryItem[]): string {
   let out = [];
   items.forEach(item => {
     out.push(`{"itemid": "${item.id}", "version": "${'211.1.0'}"}`);

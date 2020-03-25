@@ -49,7 +49,7 @@ export interface TypeInfo {
   highItemId: number;
 }
 
-export interface Item {
+export interface MaplestoryItem {
   id: number;
   description?: Description;
   metaInfo?: MetaInfo;
@@ -59,13 +59,13 @@ export interface Item {
 const rc = RedisConnector.getInstance();
 
 export abstract class BaseItem {
-  constructor(item: Item) {
+  constructor(item: MaplestoryItem) {
     Object.assign(this, item);
   }
 }
 
 export class DisplayableItem extends BaseItem {
-  getIcon(item: Item): Promise<Buffer> {
+  getIcon(item: MaplestoryItem): Promise<Buffer> {
     try {
       return new Promise<Buffer>(resolve => resolve(Buffer.from(item.metaInfo.icon, 'base64')));
     } catch {

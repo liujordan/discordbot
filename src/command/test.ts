@@ -1,10 +1,10 @@
 import {environment} from '../config/environment';
 import {BaseCommand} from './baseCommand';
 import {RedisCommand} from "../utils/redisConnector";
-import {getIcon, MaplestoryApi} from "../maplestory/maplestoryApi";
+import {MaplestoryApi} from "../maplestory/maplestoryApi";
 import {TextChannel} from "discord.js";
-import Jimp from 'jimp';
-import {Item} from "../maplestory/item";
+import {ItemModel} from "../mongo/models/item.model";
+import {AvatarModel} from "../mongo/models/avatar.model";
 
 const ms = MaplestoryApi.getInstance();
 
@@ -16,26 +16,15 @@ export class Test extends BaseCommand {
 
   execute(rc: RedisCommand) {
     this.getChannel(rc).then((channel: TextChannel) => {
-      let things = [ms.getItem("3015432"), ms.getItem("3015432")];
-      Promise.all<Item>(things).then(results => {
-        let morethings: Promise<Jimp>[] = results.map(item => {
-          return getIcon(item).then(buff => {
-            return Jimp.read(buff);
-          });
+      let item = new ItemModel({item_id: 1082016, user: rc.user._id}).save();
+      let avatar = AvatarModel.findOne({user: rc.user._id});
+      Promise.all([item, avatar]).then(results => {
+        const a = results[1];
+        return a.addItem(results[0]);
+      })
+        .then(a => {
+          channel.send(JSON.stringify(a.inventory));
         });
-        Promise.all<Jimp>(morethings).then(results2 => {
-          results2.map(r => r.contain(40, 40));
-          let c = new Jimp(80, 80);
-          let r1 = results2[0];
-          let r2 = results2[1];
-          c.blit(r1, 0, 0);
-          c.blit(r2, 40, 40);
-          c.getBuffer('image/png', (err, res) => {
-            if (err) console.error(err);
-            channel.send("", {files: [{attachment: res}]});
-          });
-        });
-      });
     });
   }
 }

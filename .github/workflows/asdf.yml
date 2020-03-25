@@ -4,14 +4,6 @@ on:
       - master
 name: Release
 jobs:
-  #  release-on-push:
-  #    runs-on: ubuntu-latest
-  #    env:
-  #      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #    steps:
-  #      - uses: rymndhng/release-on-push-action@master
-  #        with:
-  #          strategy: minor
   build:
     runs-on: ubuntu-latest
     steps:
