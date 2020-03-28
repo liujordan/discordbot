@@ -1,9 +1,7 @@
 import Jimp from "jimp";
-import {defaultIconPageCols, defaultIconPageRows, getIcon} from "./maplestoryApi";
+import {getIcon} from "./maplestoryApi";
 import {MaplestoryItem} from "./maplestoryItem";
-
-export const defaultIconWidth = 41;
-export const defaultIconHeight = 41;
+import {defaultIconHeight, defaultIconPageCols, defaultIconPageRows, defaultIconWidth} from "./constants";
 
 export class IconGridBuilder {
   rows: number = defaultIconPageRows;

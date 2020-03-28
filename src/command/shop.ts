@@ -1,10 +1,11 @@
 import {BaseCommand} from "./baseCommand";
 import {RedisCommand} from "../utils/redisConnector";
 import {Message, MessageEmbed, TextChannel} from "discord.js";
-import {defaultIconPageCols, defaultIconPageRows, getIcon, getItem, MaplestoryApi} from "../maplestory/maplestoryApi";
+import {getIcon, getItem, MaplestoryApi} from "../maplestory/maplestoryApi";
 import Jimp from 'jimp';
 import {MongoConnector} from "../mongo/mongoConnector";
 import {MaplestoryItem} from "../maplestory/maplestoryItem";
+import {defaultIconPageCols, defaultIconPageRows} from "../maplestory/constants";
 
 function capitalizeFirstLetter(str: string) {
   var splitStr = str.split(' ');

@@ -1,16 +1,18 @@
 import encodeurl from 'encodeurl';
 import {getLogger} from "../utils/logger";
 import {RedisConnector} from '../utils/redisConnector';
-import {defaultIconHeight, defaultIconWidth, IconGridBuilder} from "./iconGridBuilder";
+import {IconGridBuilder} from "./iconGridBuilder";
 import {AxiosResponse} from "axios";
 import {MaplestoryItem, TypeInfo} from "./maplestoryItem";
-
-export const region = 'GMS';
-export const version = '211.1.0';
-export const url = `https://maplestory.io/api`;
-
-export const defaultIconPageCols = 10;
-export const defaultIconPageRows = 5;
+import {
+  defaultIconHeight,
+  defaultIconPageCols,
+  defaultIconPageRows,
+  defaultIconWidth,
+  region,
+  url,
+  version
+} from "./constants";
 
 const logger = getLogger('maplestory');
 const rc = RedisConnector.getInstance();

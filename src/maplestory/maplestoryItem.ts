@@ -1,6 +1,6 @@
 import {AxiosResponse} from "axios";
-import {region, url, version} from "./maplestoryApi";
 import {RedisConnector} from "../utils/redisConnector";
+import {region, url, version} from "./constants";
 
 export interface Description {
   id: number;
