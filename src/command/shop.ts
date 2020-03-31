@@ -6,6 +6,7 @@ import Jimp from 'jimp';
 import {MaplestoryItem} from "../maplestory/maplestoryItem";
 import {defaultIconPageCols, defaultIconPageRows} from "../maplestory/constants";
 import {Item} from "../mongo/models/item.model";
+
 function capitalizeFirstLetter(str: string) {
   var splitStr = str.split(' ');
   for (var i = 0; i < splitStr.length; i++) {
@@ -17,29 +18,63 @@ function capitalizeFirstLetter(str: string) {
   return splitStr.join(' ');
 }
 
-let buy = "✅";
+let buy = "💳";
 let sell = "🚫";
+let buyAndEquip = "🥖";
 
 export class Shop extends BaseCommand {
   exampleString = `%shop setup other chair 1 0:0`;
   helpString = "A place to buy items";
 
-  doTheThingWithTheMessage(msg: Message, item: MaplestoryItem, rc: RedisCommand) {
-    msg.react(buy).catch(this.logger.error);
-
-    const filter = (reaction, user) => {
-      return [buy, sell].includes(reaction.emoji.name) && !user.bot;
-    };
-    const collector = msg.createReactionCollector(filter, {time: 60000});
-    collector.on('collect', (r, u) => {
-      if (r.emoji.name == buy) {
-        msg.channel.send(`<@${u.id}> bought ${item.description.name}`);
-        rc.user.getAvatar().then(a => {
-          return new Item({user: rc.user, item_id: item.id}).save().then(i => a.addItem(i))
-        }).then(a => a.save())
-      }
-      if (r.emoji.name == sell) msg.channel.send(`<@${u.id}> sold ${item.description.name}`);
-    });
+  promptItemBuy(rc: RedisCommand, item: MaplestoryItem) {
+    let reacts = [buy, buyAndEquip];
+    getIcon(item)
+      .then(buff => {
+        return Jimp.read(buff);
+      })
+      .then(jimp => jimp.contain(70, 70).getBufferAsync("image/png"))
+      .then(buff => {
+        let footer = "Would you like to buy this?\n" +
+          `${buy} buy\n` +
+          `${buyAndEquip} buy and equip\n`;
+        if (process.env.DISCORDBOT_ENV === 'production') footer += `itemId: ${item.id}\n`;
+        let embed = new MessageEmbed()
+          .setTitle(item.description.name)
+          .setDescription(item.description.description)
+          .attachFiles([{attachment: buff, name: `${item.id}.png`}])
+          .setImage(`attachment://${item.id}.png`)
+          .setFooter(footer);
+        return rc.channel.send(embed);
+      })
+      .then(msg => {
+        reacts.forEach(i => msg.react(i).catch(this.logger.error));
+        const filter = (reaction, user) => {
+          return reacts.includes(reaction.emoji.name) && !user.bot;
+        };
+        const collector = msg.createReactionCollector(filter, {time: 60000});
+        collector.on('collect', (r, u) => {
+          switch (r.emoji.name) {
+            case buy:
+              msg.channel.send(`<@${u.id}> bought ${item.description.name}`);
+              rc.user.getAvatar()
+                .then(a => {
+                  return new Item({user: rc.user, item_id: item.id}).save().then(i => a.addItem(i));
+                })
+                .then(a => a.save());
+              break;
+            case buyAndEquip:
+              msg.channel.send(`<@${u.id}> bought ${item.description.name}`);
+              rc.user.getAvatar()
+                .then(a => {
+                  return new Item({user: rc.user, item_id: item.id}).save().then(i => {
+                    return a.addItem(i).then(() => a.setArmor(i));
+                  });
+                })
+                .then(a => a.save());
+              break;
+          }
+        });
+      });
   }
 
   execute(rc: RedisCommand) {
@@ -67,27 +102,10 @@ export class Shop extends BaseCommand {
           let thing = rc.arguments[4].split(":");
           x = parseInt(thing[0]) - 1;
           y = parseInt(thing[1]) - 1;
-          if (x < 0 || y < 0) return this.send(rc, "invalid page number");x
+          if (x < 0 || y < 0) return this.send(rc, "invalid page number");
+          x;
           getItem(items[idx * defaultIconPageCols * defaultIconPageRows + y * defaultIconPageCols + x].id).then(item => {
-            getIcon(item)
-              .then(buff => {
-                return Jimp.read(buff);
-              })
-              .then(jimp => {
-                jimp.contain(70, 70).getBuffer("image/png", (err, buff) => {
-                  let embed = new MessageEmbed()
-                    .setTitle(item.description.name)
-                    .setDescription(item.description.description)
-                    .attachFiles([{attachment: buff, name: `${item.id}.png`}])
-                    .setImage(`attachment://${item.id}.png`)
-                    .setFooter((process.env.DISCORDBOT_ENV === 'production') ? `Would you like to buy this?` : `itemId: ${item.id}`);
-                  channel.send(embed)
-                    .then(msg => {
-                      this.doTheThingWithTheMessage(msg, item, rc);
-                    })
-                    .catch(this.logger.error);
-                });
-              });
+            this.promptItemBuy(rc, item);
           });
           return;
         }

@@ -1,6 +1,6 @@
 import {BaseCommand} from "./baseCommand";
 import {RedisCommand} from "../services/redisService";
-import {TextChannel} from "discord.js";
+import {MessageEmbed, TextChannel} from "discord.js";
 import {renderLink} from "../maplestory/maplestoryApi";
 import {Avatar2} from "../maplestory/interfaces";
 import {MaplestoryApi} from "../services/maplestoryService";
@@ -22,26 +22,11 @@ export class Me extends BaseCommand {
   helpString = "Shows of your current character";
 
   execute(rc: RedisCommand) {
-    this.getChannel(rc).then((channel: TextChannel) => {
-      this.ms.getItemCategories().then(() => {
-        this.mc.getAvatar(rc.data.user_id).then(av => {
-          let asdf = (av2) => {
-            channel.send("", {
-              "embed": {
-                image: {
-                  url: renderLink(av2.items)
-                }
-              }
-            }).catch(this.logger.error);
-          };
-
-          if (av == null) {
-            this.mc.addAvatar(rc.data.user_id, defaultAvatar).then(asdf);
-          } else {
-            asdf(av);
-          }
-        });
-      });
+    rc.user.getAvatar().then(a => a.render()).then(buff => {
+      let embed = new MessageEmbed()
+        .attachFiles([{attachment: buff, name: rc.user._id + ".png"}])
+        .setImage(`attachment://${rc.user._id}.png`);
+      rc.channel.send(embed);
     });
   }
 }
