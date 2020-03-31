@@ -1,7 +1,9 @@
 import {BaseCommand} from "./baseCommand";
-import {RedisCommand} from "../utils/redisConnector";
+import {RedisCommand} from "../services/redisService";
 import {TextChannel} from "discord.js";
-import {Avatar2, MaplestoryApi, renderLink} from "../maplestory/maplestoryApi";
+import {renderLink} from "../maplestory/maplestoryApi";
+import {Avatar2} from "../maplestory/interfaces";
+import {MaplestoryApi} from "../services/maplestoryService";
 
 const defaultAvatar: Avatar2 = {
   items: [
@@ -15,13 +17,13 @@ const defaultAvatar: Avatar2 = {
   ]
 };
 
-const ms: MaplestoryApi = MaplestoryApi.getInstance();
-
 export class Me extends BaseCommand {
+
+  helpString = "Shows of your current character";
 
   execute(rc: RedisCommand) {
     this.getChannel(rc).then((channel: TextChannel) => {
-      ms.getItemCategories().then(() => {
+      this.ms.getItemCategories().then(() => {
         this.mc.getAvatar(rc.data.user_id).then(av => {
           let asdf = (av2) => {
             channel.send("", {

@@ -1,7 +1,7 @@
 import {environment} from '../config/environment';
 import {BaseCommand} from './baseCommand';
 import request from 'request';
-import {RedisCommand} from "../utils/redisConnector";
+import {RedisCommand} from "../services/redisService";
 
 const nwordRequest = require('../../nword_count_request');
 

@@ -1,8 +1,11 @@
-import {RedisCommand} from "../utils/redisConnector";
+import {RedisCommand, RedisService} from "../services/redisService";
 import {Channel, Client, TextChannel} from "discord.js";
 import {Logger} from "winston";
 import {getLogger} from "../utils/logger";
 import {MongoConnector} from "../mongo/mongoConnector";
+import {Service} from "../di/serviceDecorator";
+import {DiscordService} from "../services/discordService";
+import {MaplestoryApi} from "../services/maplestoryService";
 
 export interface Command {
   name: string
@@ -11,18 +14,21 @@ export interface Command {
   execute: (RedisCommand) => any
 }
 
-
+@Service()
 export class BaseCommand implements Command {
   name: string = "DEFAULT";
   helpString: string = "DEFAULT HELP STRING";
   exampleString: string = "";
   bot: Client;
   logger: Logger = getLogger('commands');
-  mc: MongoConnector;
 
-  constructor(bot: Client, mc: MongoConnector) {
-    this.bot = bot;
-    this.mc = mc;
+  constructor(
+    public ds: DiscordService,
+    public mc: MongoConnector,
+    public rs: RedisService,
+    public ms: MaplestoryApi
+  ) {
+    this.bot = ds.client;
   }
 
   execute(message: RedisCommand) {

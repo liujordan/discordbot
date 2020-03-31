@@ -1,9 +1,10 @@
 import {Db, MongoClient} from 'mongodb';
 import {getLogger} from "../utils/logger";
-import {Avatar2} from "../maplestory/maplestoryApi";
 import {environment} from "../config/environment";
 import {MaplestoryItem} from "../maplestory/maplestoryItem";
 import mongoose from 'mongoose';
+import {Service} from "../di/serviceDecorator";
+import {Avatar2} from "../maplestory/interfaces";
 
 const url = `mongodb://${environment.mongo.host}:${environment.mongo.port}`;
 const dbName = 'myproject';
@@ -33,25 +34,20 @@ export interface avatarMember {
   slots: Slot[]
 }
 
+@Service()
 export class MongoConnector {
-  private static _instance: MongoConnector;
   client: MongoClient;
   db: Db;
   mongoose;
 
   constructor() {
-    this.client = new MongoClient(url);
-    this.mongoose = mongoose.connect(url);
+    this.client = new MongoClient(url,{useNewUrlParser: true, useUnifiedTopology: true });
+    this.mongoose = mongoose.connect(url,{useNewUrlParser: true, useUnifiedTopology: true });
     this.client.connect((err) => {
       if (err) return logger.error(err);
       logger.info("Connected successfully to server");
       this.db = this.client.db(dbName);
     });
-    MongoConnector._instance = this;
-  }
-
-  static getInstance(): MongoConnector {
-    return MongoConnector._instance || new MongoConnector();
   }
 
   getAvatar(userid: string): Promise<Avatar2> {
