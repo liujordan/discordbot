@@ -1,6 +1,6 @@
 import {environment} from '../config/environment';
 import {BaseCommand} from './baseCommand';
-import {RedisCommand} from "../utils/redisConnector";
+import {RedisCommand} from "../services/redisService";
 import {normalDefine} from "../utils/rapidApi";
 
 function getRapidApiHeader(apiName: string) {

@@ -1,12 +1,11 @@
 import {BaseCommand} from "./baseCommand";
-import {RedisCommand} from "../utils/redisConnector";
+import {RedisCommand} from "../services/redisService";
 import {Message, MessageEmbed, TextChannel} from "discord.js";
-import {getIcon, getItem, MaplestoryApi} from "../maplestory/maplestoryApi";
+import {getIcon, getItem} from "../maplestory/maplestoryApi";
 import Jimp from 'jimp';
-import {MongoConnector} from "../mongo/mongoConnector";
 import {MaplestoryItem} from "../maplestory/maplestoryItem";
 import {defaultIconPageCols, defaultIconPageRows} from "../maplestory/constants";
-
+import {Item} from "../mongo/models/item.model";
 function capitalizeFirstLetter(str: string) {
   var splitStr = str.split(' ');
   for (var i = 0; i < splitStr.length; i++) {
@@ -21,41 +20,25 @@ function capitalizeFirstLetter(str: string) {
 let buy = "✅";
 let sell = "🚫";
 
-const ms = MaplestoryApi.getInstance();
-const mc = MongoConnector.getInstance();
-
 export class Shop extends BaseCommand {
   exampleString = `%shop setup other chair 1 0:0`;
+  helpString = "A place to buy items";
 
-  doTheThingWithTheMessage(msg: Message, item: MaplestoryItem) {
+  doTheThingWithTheMessage(msg: Message, item: MaplestoryItem, rc: RedisCommand) {
     msg.react(buy).catch(this.logger.error);
-    // msg.react(sell).catch(this.logger.error);
 
     const filter = (reaction, user) => {
       return [buy, sell].includes(reaction.emoji.name) && !user.bot;
     };
-    // let items = ms.getItemsByCategory(overall, cat, subcat);
-    // let maxPage = Math.floor(items.length / (cols * rows));
-    const collector = msg.createReactionCollector(filter, {max: 1, time: 60000});
+    const collector = msg.createReactionCollector(filter, {time: 60000});
     collector.on('collect', (r, u) => {
       if (r.emoji.name == buy) {
         msg.channel.send(`<@${u.id}> bought ${item.description.name}`);
-        mc.addToInventory(u.id, item).catch(this.logger.error);
+        rc.user.getAvatar().then(a => {
+          return new Item({user: rc.user, item_id: item.id}).save().then(i => a.addItem(i))
+        }).then(a => a.save())
       }
       if (r.emoji.name == sell) msg.channel.send(`<@${u.id}> sold ${item.description.name}`);
-      // if (r.emoji.name == "👈") page -= 1;
-      // if (r.emoji.name == "👉") page += 1;
-      // if (page < 0) {
-      //   page += maxPage;
-      // }
-      // page %= maxPage;
-      // ms.getItemIconPageCached(overall, cat, subcat, page).then(buff => {
-      //   const embed = new MessageEmbed()
-      //     .attachFiles([{attachment: buff, name: `asdf${page}.png`}])
-      //     .setImage(`attachment://asdf${page}.png`)
-      //     .setDescription(`${page}/${maxPage}`);
-      //   msg.edit(embed).catch(this.logger.error);
-      // });
     });
   }
 
@@ -63,7 +46,7 @@ export class Shop extends BaseCommand {
     let idx = 0;
     let x, y;
     this.getChannel(rc).then((channel: TextChannel) => {
-      ms.getItemCategories().then(categories => {
+      this.ms.getItemCategories().then(categories => {
 
         // check each argument is valid
         rc.arguments = rc.arguments.map(capitalizeFirstLetter);
@@ -77,14 +60,14 @@ export class Shop extends BaseCommand {
           if (idx < 0) return this.send(rc, "invalid page number");
         }
 
-        let items = ms.getItemsByCategory(rc.arguments[0], rc.arguments[1], rc.arguments[2]);
+        let items = this.ms.getItemsByCategory(rc.arguments[0], rc.arguments[1], rc.arguments[2]);
 
         // get the x:y coords of the thing
         if (rc.arguments.length >= 5 && /^[0-9]*:[0-9]*$/.test(rc.arguments[4])) {
           let thing = rc.arguments[4].split(":");
           x = parseInt(thing[0]) - 1;
           y = parseInt(thing[1]) - 1;
-          if (x < 0 || y < 0) return this.send(rc, "invalid page number");
+          if (x < 0 || y < 0) return this.send(rc, "invalid page number");x
           getItem(items[idx * defaultIconPageCols * defaultIconPageRows + y * defaultIconPageCols + x].id).then(item => {
             getIcon(item)
               .then(buff => {
@@ -100,7 +83,7 @@ export class Shop extends BaseCommand {
                     .setFooter((process.env.DISCORDBOT_ENV === 'production') ? `Would you like to buy this?` : `itemId: ${item.id}`);
                   channel.send(embed)
                     .then(msg => {
-                      this.doTheThingWithTheMessage(msg, item);
+                      this.doTheThingWithTheMessage(msg, item, rc);
                     })
                     .catch(this.logger.error);
                 });
@@ -108,7 +91,7 @@ export class Shop extends BaseCommand {
           });
           return;
         }
-        ms.getItemIconPageCached(rc.arguments[0], rc.arguments[1], rc.arguments[2], idx)
+        this.ms.getItemIconPageCached(rc.arguments[0], rc.arguments[1], rc.arguments[2], idx)
           .then(buff => {
             const embed = new MessageEmbed()
               .attachFiles([{attachment: buff, name: `asdf${idx}.png`}])

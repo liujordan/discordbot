@@ -11,9 +11,12 @@
     "allowSyntheticDefaultImports": true,
     "baseUrl": "src",
     "types": [
-      "node"
+      "node",
+      "reflect-metadata"
     ],
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "exclude": [
     "node_modules",

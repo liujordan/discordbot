@@ -1,5 +1,5 @@
 import {AxiosResponse} from "axios";
-import {RedisConnector} from "../utils/redisConnector";
+import {RedisService} from "../services/redisService";
 import {region, url, version} from "./constants";
 
 export interface Description {
@@ -56,7 +56,7 @@ export interface MaplestoryItem {
   typeInfo?: TypeInfo;
 }
 
-const rc = RedisConnector.getInstance();
+const rc = RedisService.getInstance();
 
 export abstract class BaseItem {
   constructor(item: MaplestoryItem) {

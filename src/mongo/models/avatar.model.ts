@@ -23,6 +23,16 @@ const AvatarSchema: Schema = new Schema({
     shield: {type: Schema.Types.ObjectId, required: false, ref: 'Item'},
     shoes: {type: Schema.Types.ObjectId, required: false, ref: 'Item'},
   },
+  cashSlots: {
+    hat: {type: Schema.Types.ObjectId, required: false, ref: 'Item'},
+    cape: {type: Schema.Types.ObjectId, required: false, ref: 'Item'},
+    top: {type: Schema.Types.ObjectId, required: false, ref: 'Item'},
+    glove: {type: Schema.Types.ObjectId, required: false, ref: 'Item'},
+    overall: {type: Schema.Types.ObjectId, required: false, ref: 'Item'},
+    bottom: {type: Schema.Types.ObjectId, required: false, ref: 'Item'},
+    shield: {type: Schema.Types.ObjectId, required: false, ref: 'Item'},
+    shoes: {type: Schema.Types.ObjectId, required: false, ref: 'Item'},
+  },
   inventory: [{type: Schema.Types.ObjectId, ref: 'Item'}]
 });
 AvatarSchema.plugin(deepPopulate(mongoose));
@@ -32,6 +42,16 @@ export interface IAvatar extends Document {
   _id: string
   user: IUser['_id'];
   slots: {
+    hat: IItem['_id'];
+    cape: IItem['_id'];
+    top: IItem['_id'];
+    glove: IItem['_id'];
+    overall: IItem['_id'];
+    bottom: IItem['_id'];
+    shield: IItem['_id'];
+    shoes: IItem['_id'];
+  },
+  cashSlots: {
     hat: IItem['_id'];
     cape: IItem['_id'];
     top: IItem['_id'];

@@ -1,84 +1,105 @@
 import {Ndefine} from "./ndefine";
-import {Top} from "./top";
 import {Command} from "./baseCommand";
-import {Client, TextChannel} from "discord.js";
-import RedisSMQ, {QueueMessage} from "rsmq";
-import {RedisCommand, RedisConnector} from "../utils/redisConnector";
-import {Define} from "./define";
+import {Client, MessageEmbed, TextChannel} from "discord.js";
+import {RedisCommand} from "../services/redisService";
 import {getChannel} from "../utils/utils";
 import {getLogger} from "../utils/logger";
-import {Me} from "./me";
 import {MongoConnector} from "../mongo/mongoConnector";
-import {Shop} from "./shop";
+import {User} from "../mongo/models/user.model";
+import {DiscordService} from "../services/discordService";
+import {RedisQueueService} from "../services/redisQueueService";
+import {Service} from "../di/serviceDecorator";
+import {Injector} from "../di/injector";
+import {Define} from "./define";
+import {Top} from "./top";
 import {Test} from "./test";
 import {Inv} from "./inv";
-import {User} from "../mongo/models/user.model";
+import {Shop} from "./shop";
+import {Me} from "./me";
 
 const logger = getLogger('commands');
-const redis = RedisConnector.getInstance();
 
+@Service()
 export class CommandHandler {
   commands = {};
   bot: Client;
 
-  constructor(bot: Client, rsmq: RedisSMQ, mc: MongoConnector) {
-    this.bot = bot;
-    this.addCommand('ndefine', new Ndefine(bot, mc));
-    this.addCommand('top', new Top(bot, mc));
-    this.addCommand('define', new Define(bot, mc));
-    this.addCommand('me', new Me(bot, mc));
-    this.addCommand('shop', new Shop(bot, mc));
-    this.addCommand('inv', new Inv(bot, mc));
-    if (process.env.DISCORDBOT_ENV !== 'production') {
-      this.addCommand('test', new Test(bot, mc));
-    }
+  featureFlags = [
+    {
+      name: 'ndefine',
+      class: Ndefine,
+      active: true,
+    },
+    {
+      name: 'top',
+      class: Top,
+      active: true,
+    },
+    {
+      name: 'define',
+      class: Define,
+      active: true,
+    },
+    {
+      name: 'me',
+      class: Me,
+      active: true,
+    },
+    {
+      name: 'shop',
+      class: Shop,
+      active: true,
+    },
+    {
+      name: 'inv',
+      class: Inv,
+      active: true,
+    },
+    {
+      name: 'test',
+      class: Test,
+      active: process.env.DISCORDBOT_ENV !== 'production',
+    },
+  ];
 
+  constructor(
+    public ds: DiscordService,
+    rsq: RedisQueueService,
+    mc: MongoConnector
+  ) {
+    this.bot = ds.client;
+    let bot = this.bot;
 
-    // // take on all available jobs on create
-    // rsmq.getQueueAttributes({qname: redis.qname}, (err, resp) => {
-    //   this.dequeue(resp, redis, bot);
-    // });
-
-    // listen to new jobs
-    redis.subscription.on("message", () => {
-      rsmq.getQueueAttributes({qname: redis.qname}, (err, resp) => {
-        if (err) return logger.error(err);
-        this.dequeue(resp, redis, bot);
-      });
+    this.featureFlags.forEach(f => {
+      if (f.active) {
+        this.addCommand(f.name, Injector.resolve<Command>(f.class))
+      }
     });
-  }
 
-  private dequeue(resp: RedisSMQ.QueueAttributes, redis: RedisConnector, bot: Client) {
-    for (let i = 0; i < resp.msgs; i++) {
-      redis.rsmq.popMessage({qname: redis.qname}, (err, msg: QueueMessage) => {
-        if (err) return logger.error(err);
-        if (!msg.message) return;
-
-        logger.debug("Recieved: " + msg.message);
-        let rc: RedisCommand = JSON.parse(msg.message);
-
-        if (rc.command == 'help') {
-          return getChannel(bot, rc).then((channel: TextChannel) => {
-            channel.send(this.getHelp()).catch(logger.error);
-          });
-        }
-
-        const channelPromise = bot.channels.fetch(rc.data.channel_id);
-        const userPromise = User.findOne({discord_id: rc.data.user_id})
-          .then(u => {
-            if (u == null) {
-              return new User({discord_id: rc.data.user_id}).save();
-            }
-            return Promise.resolve(u);
-          });
-
-        Promise.all([userPromise, channelPromise]).then(results => {
-          rc.user = results[0];
-          rc.channel = (results[1] as TextChannel);
-          this.execute(rc);
+    rsq.onMessage((rc: RedisCommand) => {
+      if (rc.command == 'help') {
+        return getChannel(bot, rc).then((channel: TextChannel) => {
+          let embed = new MessageEmbed()
+            .setDescription(this.getHelp());
+          channel.send(embed).catch(logger.error);
         });
+      }
+
+      const channelPromise = bot.channels.fetch(rc.data.channel_id);
+      const userPromise = User.findOne({discord_id: rc.data.user_id})
+        .then(u => {
+          if (u == null) {
+            return new User({discord_id: rc.data.user_id}).save();
+          }
+          return Promise.resolve(u);
+        })
+
+      Promise.all([userPromise, channelPromise]).then(results => {
+        rc.user = results[0];
+        rc.channel = (results[1] as TextChannel);
+        this.execute(rc);
       });
-    }
+    })
   }
 
   addCommand(name: string, command: Command) {
@@ -87,7 +108,9 @@ export class CommandHandler {
 
   getHelp(): string {
     let out = "";
-    out += `Version ${this.getVersion()}\n`;
+    if (this.getVersion()) {
+      out += `Version ${this.getVersion()}\n`;
+    }
     for (let c in this.commands) {
       let cmd: Command = this.commands[c];
       out += `\`${c}\`: ${cmd.helpString}\n`;
