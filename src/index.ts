@@ -41,6 +41,7 @@ class Main {
             ) {
               return;
             }
+            logger.info("Forwarding to ES");
 
             // send message to ES
             request.post(`${ES_NODE}/discord_write/_doc/`, {
@@ -74,7 +75,7 @@ class Main {
           if (message.content == "bad bot") message.channel.send("Your mom a hoe").catch(logger.error);
           let pm = parser.parse(message);
           if (!pm.success) return;
-          logger.debug(pm.message.toString());
+          logger.info(pm.message.toString());
           this.rqs.sendCommand(pm).catch(logger.error);
         });
         break;
