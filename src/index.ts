@@ -44,7 +44,8 @@ class Main {
             logger.info("Forwarding to ES");
 
             // send message to ES
-            request.post(`${ES_NODE}/discord_write/_doc/`, {
+            request.post(`${ES_NODE}/discord_write/_doc/`,
+              {
               json: {
                 content: message.content,
                 createdAt: message.createdAt,
@@ -64,7 +65,10 @@ class Main {
               agentOptions: {
                 rejectUnauthorized: false
               }
-            });
+            }, function(err, res) {
+              if (err) return console.log(err);
+              console.log(res);
+              });
           });
         }
         let parser = new Parser();
