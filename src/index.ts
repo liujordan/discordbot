@@ -32,7 +32,7 @@ class Main {
       case "publisher":
         logger.info("Starting publisher...");
         // forwarding all messages to ES
-        if (process.env.DISCORDBOT_ENV !== 'production') {
+        if (process.env.DISCORDBOT_ENV == 'production') {
           bot.on('message', message => {
             // skip the message if it's from a bot
             if (message.author.bot || !message.guild) return;
