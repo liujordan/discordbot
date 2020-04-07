@@ -13,6 +13,7 @@ import {InventoryManager} from "../../maplestory/inventoryManager";
 const logger = getLogger("avatar");
 const AvatarSchema: Schema = new Schema({
   user: {type: Schema.Types.ObjectId, required: true, ref: 'User'},
+  skinId: {type: Schema.Types.String, required: true, ref: 'User', default: 2012},
   slots: {
     hat: {type: Schema.Types.ObjectId, required: false, ref: 'Item'},
     cape: {type: Schema.Types.ObjectId, required: false, ref: 'Item'},
@@ -61,6 +62,7 @@ export interface IAvatar extends Document {
     shield: IItem['_id'];
     shoes: IItem['_id'];
   }
+  skinId: string;
   addItem: (IItem) => Promise<IAvatar>;
   setArmor: (IItem) => Promise<IAvatar>;
   render: () => Promise<Buffer>
@@ -96,7 +98,8 @@ AvatarSchema.methods.getInventoryAsItems = function (): Promise<MaplestoryItem[]
 };
 
 AvatarSchema.methods.render = function (): Promise<Buffer> {
-  let itemIds = [12000, 2000];
+  let itemIds = [];
+  // let itemIds = [12000, 2000, 20038];
   let fuck = [];
   for (let category of slotNames) {
     if (this.slots.hasOwnProperty(category)) {
@@ -115,7 +118,9 @@ AvatarSchema.methods.render = function (): Promise<Buffer> {
     itemIds.forEach(id => {
       out.push(`{"itemid": "${id}", "version": "${'211.1.0'}"}`);
     });
-    const url = 'https://maplestory.io/api/character/' + encodeurl(out.join(',')) + '/stand1/animated?showears=false&showLefEars=false&showHighLefEars=undefined&resize=1&name=&flipX=undefined';
+    const url = `https://maplestory.io/api/gms/211.1.0/character/${this.skinId}/${encodeurl(out.join(','))}/stand1/`;
+    console.log(url)
+    // const url = 'https://maplestory.io/api/character/' + encodeurl(out.join(',')) + '/stand1/animated?showears=false&showLefEars=false&showHighLefEars=undefined&resize=1&name=&flipX=undefined';
     return axios.get(url, {responseType: 'arraybuffer'}).then(resp => {
       return Buffer.from(resp.data, 'binary');
     });

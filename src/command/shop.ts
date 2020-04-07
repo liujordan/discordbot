@@ -6,6 +6,7 @@ import Jimp from 'jimp';
 import {MaplestoryItem} from "../maplestory/maplestoryItem";
 import {defaultIconPageCols, defaultIconPageRows} from "../maplestory/constants";
 import {Item} from "../mongo/models/item.model";
+import axios from "axios";
 
 function capitalizeFirstLetter(str: string) {
   var splitStr = str.split(' ');
@@ -77,9 +78,22 @@ export class Shop extends BaseCommand {
       });
   }
 
+  categories = {
+    "Skin": {},
+    "Face": {},
+    "Face1": {},
+    "Hair": {}
+  };
+
+  getSkinIds(): Promise<number[]> {
+    return this.rs.cachedRequest<number[]>({url: "https://maplestory.io/api/GMS/211.1.0/character"})
+  }
   execute(rc: RedisCommand) {
     let idx = 0;
     let x, y;
+    // return this.getSkinIds().then(asdf => {
+    //   return rc.channel.send(JSON.stringify(asdf));
+    // })
     this.getChannel(rc).then((channel: TextChannel) => {
       this.ms.getItemCategories().then(categories => {
 

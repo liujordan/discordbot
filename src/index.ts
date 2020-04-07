@@ -35,7 +35,7 @@ class Main {
         if (process.env.DISCORDBOT_ENV == 'production') {
           bot.on('message', message => {
             // skip the message if it's from a bot
-            if (message.author.bot || !message.guild) return;
+            if (message.author.bot || !message.guild || message.guild.name != 'Certified Big Boys') return;
 
             // send message to ES
             request.post(`${ES_NODE}/discord_write/_doc/`, {
