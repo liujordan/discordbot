@@ -34,8 +34,13 @@ class Main {
         // forwarding all messages to ES
         if (process.env.DISCORDBOT_ENV == 'production') {
           bot.on('message', message => {
-            // skip the message if it's from a bot
-            if (message.author.bot || !message.guild || message.guild.name != 'Certified Big Boys') return;
+            if (
+              message.author.bot ||
+              !message.guild ||
+              message.guild.id != '366719645954211840'
+            ) {
+              return;
+            }
 
             // send message to ES
             request.post(`${ES_NODE}/discord_write/_doc/`, {
