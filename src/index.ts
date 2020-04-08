@@ -27,7 +27,7 @@ class Main {
     public ds: DiscordService,
     public rqs: RedisQueueService
   ) {
-    let bot = ds.client
+    let bot = ds.client;
     switch (environment.mode) {
       case "publisher":
         logger.info("Starting publisher...");
