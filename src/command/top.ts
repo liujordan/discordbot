@@ -3,7 +3,7 @@ import {BaseCommand} from './baseCommand';
 import request from 'request';
 import {RedisCommand} from "../services/redisService";
 
-const nWordRequest = require('../requests/nword_count.json');
+const nWordRequest = require('@requests/nword_count.json');
 
 const ES_NODE = environment.es.host;
 
