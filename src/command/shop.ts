@@ -1,12 +1,11 @@
 import {BaseCommand} from "./baseCommand";
 import {RedisCommand} from "../services/redisService";
-import {Message, MessageEmbed, TextChannel} from "discord.js";
+import {MessageEmbed} from "discord.js";
 import {getIcon, getItem} from "../maplestory/maplestoryApi";
 import Jimp from 'jimp';
 import {MaplestoryItem} from "../maplestory/maplestoryItem";
 import {defaultIconPageCols, defaultIconPageRows} from "../maplestory/constants";
 import {Item} from "../mongo/models/item.model";
-import axios from "axios";
 
 function capitalizeFirstLetter(str: string) {
   var splitStr = str.split(' ');
@@ -86,57 +85,56 @@ export class Shop extends BaseCommand {
   };
 
   getSkinIds(): Promise<number[]> {
-    return this.rs.cachedRequest<number[]>({url: "https://maplestory.io/api/GMS/211.1.0/character"})
+    return this.rs.cachedRequest<number[]>({url: "https://maplestory.io/api/GMS/211.1.0/character"});
   }
+
   execute(rc: RedisCommand) {
     let idx = 0;
     let x, y;
     // return this.getSkinIds().then(asdf => {
     //   return rc.channel.send(JSON.stringify(asdf));
     // })
-    this.getChannel(rc).then((channel: TextChannel) => {
-      this.ms.getItemCategories().then(categories => {
+    this.ms.getItemCategories().then(categories => {
 
-        // check each argument is valid
-        rc.arguments = rc.arguments.map(capitalizeFirstLetter);
+      // check each argument is valid
+      rc.arguments = rc.arguments.map(capitalizeFirstLetter);
 
-        let out = this.isValid(rc, categories);
-        if (out.length > 0) return this.send(rc, out);
+      let out = this.isValid(rc, categories);
+      if (out.length > 0) return this.send(rc, out);
 
-        // get the page number
-        if (rc.arguments.length >= 4 && /^\d*$/.test(rc.arguments[3])) {
-          idx = parseInt(rc.arguments[3]) - 1;
-          if (idx < 0) return this.send(rc, "invalid page number");
-        }
+      // get the page number
+      if (rc.arguments.length >= 4 && /^\d*$/.test(rc.arguments[3])) {
+        idx = parseInt(rc.arguments[3]) - 1;
+        if (idx < 0) return this.send(rc, "invalid page number");
+      }
 
-        let items = this.ms.getItemsByCategory(rc.arguments[0], rc.arguments[1], rc.arguments[2]);
+      let items = this.ms.getItemsByCategory(rc.arguments[0], rc.arguments[1], rc.arguments[2]);
 
-        // get the x:y coords of the thing
-        if (rc.arguments.length >= 5 && /^[0-9]*:[0-9]*$/.test(rc.arguments[4])) {
-          let thing = rc.arguments[4].split(":");
-          x = parseInt(thing[0]) - 1;
-          y = parseInt(thing[1]) - 1;
-          if (x < 0 || y < 0) return this.send(rc, "invalid page number");
-          x;
-          getItem(items[idx * defaultIconPageCols * defaultIconPageRows + y * defaultIconPageCols + x].id).then(item => {
-            this.promptItemBuy(rc, item);
-          });
-          return;
-        }
-        this.ms.getItemIconPageCached(rc.arguments[0], rc.arguments[1], rc.arguments[2], idx)
-          .then(buff => {
-            const embed = new MessageEmbed()
-              .attachFiles([{attachment: buff, name: `asdf${idx}.png`}])
-              .setImage(`attachment://asdf${idx}.png`)
-              .setDescription(`${idx + 1}/${Math.ceil(items.length / (defaultIconPageCols * defaultIconPageRows))}`);
-            channel.send(embed)
-              .then(msg => {
-                // this.doTheThingWithTheMessage(msg, ItemCategory.equip, rc.arguments[1], rc.arguments[2], idx);
-              })
-              .catch(this.logger.error);
-          })
-          .catch(this.logger.error);
-      });
+      // get the x:y coords of the thing
+      if (rc.arguments.length >= 5 && /^[0-9]*:[0-9]*$/.test(rc.arguments[4])) {
+        let thing = rc.arguments[4].split(":");
+        x = parseInt(thing[0]) - 1;
+        y = parseInt(thing[1]) - 1;
+        if (x < 0 || y < 0) return this.send(rc, "invalid page number");
+        x;
+        getItem(items[idx * defaultIconPageCols * defaultIconPageRows + y * defaultIconPageCols + x].id).then(item => {
+          this.promptItemBuy(rc, item);
+        });
+        return;
+      }
+      this.ms.getItemIconPageCached(rc.arguments[0], rc.arguments[1], rc.arguments[2], idx)
+        .then(buff => {
+          const embed = new MessageEmbed()
+            .attachFiles([{attachment: buff, name: `asdf${idx}.png`}])
+            .setImage(`attachment://asdf${idx}.png`)
+            .setDescription(`${idx + 1}/${Math.ceil(items.length / (defaultIconPageCols * defaultIconPageRows))}`);
+          rc.channel.send(embed)
+            .then(msg => {
+              // this.doTheThingWithTheMessage(msg, ItemCategory.equip, rc.arguments[1], rc.arguments[2], idx);
+            })
+            .catch(this.logger.error);
+        })
+        .catch(this.logger.error);
     });
   }
 

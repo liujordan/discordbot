@@ -27,8 +27,7 @@ ItemSchema.methods.getEmbed = function (): Promise<MessageEmbed> {
     .then(i => {
       item = i;
       return getIcon(i);
-    })
-    .then(buff => {
+    }).then(buff => {
       return Jimp.read(buff);
     }).then(jimp => {
       return new Promise((resolve, reject) => {

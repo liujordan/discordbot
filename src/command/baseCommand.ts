@@ -1,5 +1,5 @@
 import {RedisCommand, RedisService} from "../services/redisService";
-import {Channel, Client, TextChannel} from "discord.js";
+import {Client} from "discord.js";
 import {Logger} from "winston";
 import {getLogger} from "../utils/logger";
 import {MongoConnector} from "../mongo/mongoConnector";
@@ -36,12 +36,6 @@ export class BaseCommand implements Command {
   }
 
   send(rc: RedisCommand, message): void {
-    this.getChannel(rc).then((channel: TextChannel) => {
-      channel.send(message).catch(this.logger.error);
-    });
-  }
-
-  getChannel(rc: RedisCommand): Promise<Channel> {
-    return this.bot.channels.fetch(rc.data.channel_id);
+    rc.channel.send(message).catch(this.logger.error);
   }
 }

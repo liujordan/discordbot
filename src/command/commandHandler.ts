@@ -11,7 +11,6 @@ import {RedisQueueService} from "../services/redisQueueService";
 import {Service} from "../di/serviceDecorator";
 import {Injector} from "../di/injector";
 import {Define} from "./define";
-import {Top} from "./top";
 import {Test} from "./test";
 import {Inv} from "./inv";
 import {Shop} from "./shop";
@@ -28,11 +27,6 @@ export class CommandHandler {
     {
       name: 'ndefine',
       class: Ndefine,
-      active: true,
-    },
-    {
-      name: 'top',
-      class: Top,
       active: true,
     },
     {
@@ -72,7 +66,7 @@ export class CommandHandler {
 
     this.featureFlags.forEach(f => {
       if (f.active) {
-        this.addCommand(f.name, Injector.resolve<Command>(f.class))
+        this.addCommand(f.name, Injector.resolve<Command>(f.class));
       }
     });
 
@@ -92,14 +86,14 @@ export class CommandHandler {
             return new User({discord_id: rc.data.user_id}).save();
           }
           return Promise.resolve(u);
-        })
+        });
 
       Promise.all([userPromise, channelPromise]).then(results => {
         rc.user = results[0];
         rc.channel = (results[1] as TextChannel);
         this.execute(rc);
       });
-    })
+    });
   }
 
   addCommand(name: string, command: Command) {

@@ -6,6 +6,7 @@ import {region, url, version} from "./constants";
 import {Injector} from "../di/injector";
 
 const rc = Injector.resolve<RedisService>(RedisService);
+
 export enum ItemCategory {
   equip = 'equip', use = 'use', setup = 'setup', etc = 'etc', cash = 'cash'
 }
@@ -18,14 +19,15 @@ export function getItem(id): Promise<MaplestoryItem> {
 }
 
 export function getIcon(item: MaplestoryItem): Promise<Buffer> {
-  return new Promise<Buffer>(resolve => {
+  return new Promise<Buffer>((resolve, reject) => {
     try {
       resolve(Buffer.from(item.metaInfo.icon, 'base64'));
     } catch {
       rc.cachedRequest({url: `${url}/${region}/${version}/item/${item.id}/icon`}, true)
         .then((res: AxiosResponse) => {
           return resolve(Buffer.from(res.data));
-        });
+        })
+        .catch(reject);
     }
   });
 }
