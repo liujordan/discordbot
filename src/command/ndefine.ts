@@ -3,13 +3,6 @@ import {BaseCommand} from './baseCommand';
 import {RedisCommand} from "../services/redisService";
 import {normalDefine} from "../utils/rapidApi";
 
-function getRapidApiHeader(apiName: string) {
-  return {
-    'x-rapidapi-host': environment.rapidApi[apiName].host,
-    'x-rapidapi-key': environment.rapidApi[apiName].key
-  };
-}
-
 export class Ndefine extends BaseCommand {
   name = 'define';
   helpString = 'Defines a word using the normal dictionary';

@@ -1,8 +1,7 @@
 import {RedisCommand, RedisService} from "../services/redisService";
-import {Channel, Client, TextChannel} from "discord.js";
+import {Client} from "discord.js";
 import {Logger} from "winston";
 import {getLogger} from "../utils/logger";
-import {MongoConnector} from "../mongo/mongoConnector";
 import {Service} from "../di/serviceDecorator";
 import {DiscordService} from "../services/discordService";
 import {MaplestoryApi} from "../services/maplestoryService";
@@ -24,7 +23,6 @@ export class BaseCommand implements Command {
 
   constructor(
     public ds: DiscordService,
-    public mc: MongoConnector,
     public rs: RedisService,
     public ms: MaplestoryApi
   ) {
@@ -36,12 +34,6 @@ export class BaseCommand implements Command {
   }
 
   send(rc: RedisCommand, message): void {
-    this.getChannel(rc).then((channel: TextChannel) => {
-      channel.send(message).catch(this.logger.error);
-    });
-  }
-
-  getChannel(rc: RedisCommand): Promise<Channel> {
-    return this.bot.channels.fetch(rc.data.channel_id);
+    rc.channel.send(message).catch(this.logger.error);
   }
 }

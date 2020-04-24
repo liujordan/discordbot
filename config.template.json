@@ -4,13 +4,6 @@
       "token": ""
     }
   },
-  "es": {
-    "host": "",
-    "auth": {
-      "username": "",
-      "password": ""
-    }
-  },
   "bot": {
     "prefix": "%"
   },
