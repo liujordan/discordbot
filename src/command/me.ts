@@ -1,9 +1,7 @@
 import {BaseCommand} from "./baseCommand";
 import {RedisCommand} from "../services/redisService";
-import {MessageEmbed, TextChannel} from "discord.js";
-import {renderLink} from "../maplestory/maplestoryApi";
+import {MessageEmbed} from "discord.js";
 import {Avatar2} from "../maplestory/interfaces";
-import {MaplestoryApi} from "../services/maplestoryService";
 
 const defaultAvatar: Avatar2 = {
   items: [
