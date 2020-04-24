@@ -24,8 +24,5 @@
   ],
   "include": [
     "./src/**/*"
-  ],
-  "paths": {
-    "@requests/*": ["src/requests/*"]
-  }
+  ]
 }
