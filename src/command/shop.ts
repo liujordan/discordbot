@@ -1,11 +1,10 @@
 import {BaseCommand} from "./baseCommand";
-import {RedisCommand} from "../services/redisService";
-import {MessageEmbed} from "discord.js";
+import {Message, MessageEmbed} from "discord.js";
 import {getIcon, getItem} from "../maplestory/maplestoryApi";
 import Jimp from 'jimp';
 import {MaplestoryItem} from "../maplestory/maplestoryItem";
 import {defaultIconPageCols, defaultIconPageRows} from "../maplestory/constants";
-import {Item} from "../mongo/models/item.model";
+import {ParsedMessage} from "discord-command-parser";
 
 function capitalizeFirstLetter(str: string) {
   var splitStr = str.split(' ');
@@ -26,7 +25,14 @@ export class Shop extends BaseCommand {
   exampleString = `%shop setup other chair 1 0:0`;
   helpString = "A place to buy items";
 
-  promptItemBuy(rc: RedisCommand, item: MaplestoryItem) {
+  categories = {
+    "Skin": {},
+    "Face": {},
+    "Face1": {},
+    "Hair": {}
+  };
+
+  promptItemBuy(rc: ParsedMessage, item: MaplestoryItem) {
     let reacts = [buy, buyAndEquip];
     getIcon(item)
       .then(buff => {
@@ -44,51 +50,12 @@ export class Shop extends BaseCommand {
           .attachFiles([{attachment: buff, name: `${item.id}.png`}])
           .setImage(`attachment://${item.id}.png`)
           .setFooter(footer);
-        return rc.channel.send(embed);
+        return rc.message.channel.send(embed);
       })
-      .then(msg => {
-        reacts.forEach(i => msg.react(i).catch(this.logger.error));
-        const filter = (reaction, user) => {
-          return reacts.includes(reaction.emoji.name) && !user.bot;
-        };
-        const collector = msg.createReactionCollector(filter, {time: 60000});
-        collector.on('collect', (r, u) => {
-          switch (r.emoji.name) {
-            case buy:
-              msg.channel.send(`<@${u.id}> bought ${item.description.name}`);
-              rc.user.getAvatar()
-                .then(a => {
-                  return new Item({user: rc.user, item_id: item.id}).save().then(i => a.addItem(i));
-                })
-                .then(a => a.save());
-              break;
-            case buyAndEquip:
-              msg.channel.send(`<@${u.id}> bought ${item.description.name}`);
-              rc.user.getAvatar()
-                .then(a => {
-                  return new Item({user: rc.user, item_id: item.id}).save().then(i => {
-                    return a.addItem(i).then(() => a.setArmor(i));
-                  });
-                })
-                .then(a => a.save());
-              break;
-          }
-        });
-      });
+      .then(msg => this.handleMessageReaction(reacts, msg, item, rc));
   }
 
-  categories = {
-    "Skin": {},
-    "Face": {},
-    "Face1": {},
-    "Hair": {}
-  };
-
-  getSkinIds(): Promise<number[]> {
-    return this.rs.cachedRequest<number[]>({url: "https://maplestory.io/api/GMS/211.1.0/character"});
-  }
-
-  execute(rc: RedisCommand) {
+  async execute(rc: ParsedMessage): Promise<void> {
     let idx = 0;
     let x, y;
     // return this.getSkinIds().then(asdf => {
@@ -128,7 +95,7 @@ export class Shop extends BaseCommand {
             .attachFiles([{attachment: buff, name: `asdf${idx}.png`}])
             .setImage(`attachment://asdf${idx}.png`)
             .setDescription(`${idx + 1}/${Math.ceil(items.length / (defaultIconPageCols * defaultIconPageRows))}`);
-          rc.channel.send(embed)
+          rc.message.channel.send(embed)
             .then(msg => {
               // this.doTheThingWithTheMessage(msg, ItemCategory.equip, rc.arguments[1], rc.arguments[2], idx);
             })
@@ -138,8 +105,42 @@ export class Shop extends BaseCommand {
     });
   }
 
+  getSkinIds(): Promise<number[]> {
+    return this.rs.cachedRequest<number[]>({url: "https://maplestory.io/api/GMS/211.1.0/character"});
+  }
+
+  private handleMessageReaction(reacts: string[], msg: Message, item: MaplestoryItem, rc: ParsedMessage) {
+    reacts.forEach(i => msg.react(i).catch(this.logger.error));
+    const filter = (reaction, user) => {
+      return reacts.includes(reaction.emoji.name) && !user.bot;
+    };
+    const collector = msg.createReactionCollector(filter, {time: 60000});
+    collector.on('collect', (r, u) => {
+      switch (r.emoji.name) {
+        case buy:
+          msg.channel.send(`<@${u.id}> bought ${item.description.name}`);
+          // rc.user.getAvatar()
+          //   .then(a => {
+          //     return new Item({user: rc.user, appearance_id: item.id}).save().then(i => a.addItem(i));
+          //   })
+          //   .then(a => a.save());
+          break;
+        case buyAndEquip:
+          msg.channel.send(`<@${u.id}> bought ${item.description.name}`);
+        // rc.user.getAvatar()
+        //   .then(a => {
+        //     return new Item({user: rc.user, appearance_id: item.id}).save().then(i => {
+        //       return a.addItem(i).then(() => a.setArmor(i));
+        //     });
+        //   })
+        //   .then(a => a.save());
+        // break;
+      }
+    });
+  }
+
   // stupid. returns a the error string to send if the valid is not valid
-  private isValid(rc: RedisCommand, categories: any): string[] {
+  private isValid(rc: ParsedMessage, categories: any): string[] {
     let out = Object.keys(categories);
     let cur: any = categories;
 

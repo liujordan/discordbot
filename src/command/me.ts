@@ -1,6 +1,4 @@
 import {BaseCommand} from "./baseCommand";
-import {RedisCommand} from "../services/redisService";
-import {MessageEmbed} from "discord.js";
 import {Avatar2} from "../maplestory/interfaces";
 
 const defaultAvatar: Avatar2 = {
@@ -18,13 +16,13 @@ const defaultAvatar: Avatar2 = {
 export class Me extends BaseCommand {
 
   helpString = "Shows of your current character";
-
-  execute(rc: RedisCommand) {
-    rc.user.getAvatar().then(a => a.render()).then(buff => {
-      let embed = new MessageEmbed()
-        .attachFiles([{attachment: buff, name: rc.user._id + ".png"}])
-        .setImage(`attachment://${rc.user._id}.png`);
-      rc.channel.send(embed);
-    });
-  }
+  //
+  // execute(rc: RedisCommand) {
+  //   rc.user.getAvatar().then(a => a.render()).then(buff => {
+  //     let embed = new MessageEmbed()
+  //       .attachFiles([{attachment: buff, name: rc.user._id + ".png"}])
+  //       .setImage(`attachment://${rc.user._id}.png`);
+  //     rc.channel.send(embed);
+  //   });
+  // }
 }

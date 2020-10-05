@@ -1,7 +1,7 @@
 import {environment} from '../config/environment';
 import {BaseCommand} from './baseCommand';
-import {RedisCommand} from "../services/redisService";
 import {urbanDefine} from "../utils/rapidApi";
+import {ParsedMessage} from "discord-command-parser";
 
 export class Define extends BaseCommand {
   name = 'define';
@@ -9,7 +9,7 @@ export class Define extends BaseCommand {
   exampleString = `${environment.bot.prefix}define wombo combo`;
 
 
-  execute(rc: RedisCommand) {
+  async execute(rc: ParsedMessage): Promise<void> {
     let word = rc.arguments.join(" ");
     this.logger.debug("defining " + word);
     urbanDefine(rc.arguments.join(" "))

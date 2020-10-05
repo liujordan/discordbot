@@ -1,7 +1,7 @@
 import * as winston from 'winston';
 import {Logger} from 'winston';
 
-const {combine, timestamp, label, printf} = winston.format;
+const {combine, timestamp, label, printf, errors,} = winston.format;
 
 const myFormat = printf(({level, message, label, timestamp}) => {
   return `${timestamp} [${label}] ${level}: ${message}`;
@@ -16,7 +16,8 @@ function addLabeledLogger(s: string): Logger {
     format: combine(
       label({label: s}),
       timestamp(),
-      myFormat
+      myFormat,
+      errors({stack: true})
     ),
     transports: [
       new winston.transports.Console(),

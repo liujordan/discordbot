@@ -18,4 +18,16 @@ export const Injector = new class {
       });
     return new target(...injections);
   }
+
+  closeAll() {
+    Object.values(this.instances).forEach((i: any) => {
+      try {
+        console.log("ASDFASDFA");
+        console.log(this.instances);
+        i.close();
+      } catch (e) {
+        console.warn(e);
+      }
+    });
+  }
 };

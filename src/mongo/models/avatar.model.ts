@@ -73,7 +73,7 @@ export interface IAvatar extends Document {
 
 
 AvatarSchema.methods.setArmor = function (characterItem: IItem): Promise<IAvatar> {
-  return getItem(characterItem.item_id)
+  return getItem(characterItem.appearance_id)
     .then(item => {
       if (item.typeInfo.category.toLowerCase() != 'armor') {
         logger.error(`Tried to set non-armour item ${item.id} as armour`);
@@ -93,7 +93,7 @@ AvatarSchema.methods.getInventoryAsItems = function (): Promise<MaplestoryItem[]
   return this
     .deepPopulate('inventory')
     .then((a: IAvatar) => {
-      return Promise.all((a.inventory as IItem[]).map(i => getItem(i.item_id)));
+      return Promise.all((a.inventory as IItem[]).map(i => getItem(i.appearance_id)));
     });
 };
 
@@ -112,7 +112,7 @@ AvatarSchema.methods.render = function (): Promise<Buffer> {
   let fuck2 = fuck.map(i => Item.findOne({_id: i}));
   return Promise.all(fuck2).then(shit => {
     shit.forEach(i => {
-      itemIds.push(i.item_id);
+      itemIds.push(i.appearance_id);
     });
     let out = [];
     itemIds.forEach(id => {

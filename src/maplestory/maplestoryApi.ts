@@ -1,11 +1,13 @@
 import encodeurl from 'encodeurl';
-import {RedisService} from '../services/redisService';
 import {AxiosResponse} from "axios";
 import {MaplestoryItem} from "./maplestoryItem";
 import {region, url, version} from "./constants";
 import {Injector} from "../di/injector";
+import {MemoryCache} from "../services/caching/memoryCache";
+import {RequestService} from "../services/requestService";
 
-const rc = Injector.resolve<RedisService>(RedisService);
+const memoryCache = Injector.resolve<MemoryCache>(MemoryCache);
+const rc = new RequestService(memoryCache);
 
 export enum ItemCategory {
   equip = 'equip', use = 'use', setup = 'setup', etc = 'etc', cash = 'cash'
@@ -15,7 +17,7 @@ export function getItem(id): Promise<MaplestoryItem> {
   return rc.cachedRequest<MaplestoryItem>({
     url: `${url}/${region}/${version}/item/${id}`,
     method: "GET"
-  }, true);
+  });
 }
 
 export function getIcon(item: MaplestoryItem): Promise<Buffer> {
@@ -23,7 +25,7 @@ export function getIcon(item: MaplestoryItem): Promise<Buffer> {
     try {
       resolve(Buffer.from(item.metaInfo.icon, 'base64'));
     } catch {
-      rc.cachedRequest({url: `${url}/${region}/${version}/item/${item.id}/icon`}, true)
+      rc.cachedRequest({url: `${url}/${region}/${version}/item/${item.id}/icon`})
         .then((res: AxiosResponse) => {
           return resolve(Buffer.from(res.data));
         })

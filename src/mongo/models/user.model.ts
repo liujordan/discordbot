@@ -15,6 +15,7 @@ export interface IUser extends Document {
 UserSchema.methods.createAvatar = function (): Promise<IAvatar> {
   return new Avatar({user: this._id}).save();
 };
+
 UserSchema.methods.getAvatar = function (): Promise<IAvatar> {
   return Avatar
     .findOne({user: this._id})

@@ -1,14 +1,14 @@
 import {environment} from '../config/environment';
 import {BaseCommand} from './baseCommand';
-import {RedisCommand} from "../services/redisService";
 import {normalDefine} from "../utils/rapidApi";
+import {ParsedMessage} from "discord-command-parser";
 
 export class Ndefine extends BaseCommand {
   name = 'define';
   helpString = 'Defines a word using the normal dictionary';
   exampleString = `${environment.bot.prefix}ndefine dictionary`;
 
-  execute(rc: RedisCommand) {
+  async execute(rc: ParsedMessage): Promise<void> {
     this.logger.debug("defining " + rc.arguments[0]);
     let word = rc.arguments[0];
     normalDefine(word)

@@ -1,0 +1,12 @@
+import {Config} from "./configProvider";
+import {Service} from "../../di/serviceDecorator";
+
+@Service()
+class ConfigService {
+  environment: Config = function () {
+    const env = require("../../config.json");
+    env.mode = env.mode || process.env.BOT_MODE || "publisher";
+    env.version = process.env.BOT_VERSION || "0.0.0";
+    return env;
+  }();
+}

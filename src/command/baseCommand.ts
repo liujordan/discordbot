@@ -1,16 +1,17 @@
-import {RedisCommand, RedisService} from "../services/redisService";
+import {RedisService} from "../services/caching/redisService";
 import {Client} from "discord.js";
 import {Logger} from "winston";
 import {getLogger} from "../utils/logger";
 import {Service} from "../di/serviceDecorator";
 import {DiscordService} from "../services/discordService";
 import {MaplestoryApi} from "../services/maplestoryService";
+import {ParsedMessage} from "discord-command-parser";
 
 export interface Command {
   name: string
   helpString: string
   exampleString?: string
-  execute: (RedisCommand) => any
+  execute: (m: ParsedMessage) => Promise<void>
 }
 
 @Service()
@@ -29,11 +30,11 @@ export class BaseCommand implements Command {
     this.bot = ds.client;
   }
 
-  execute(message: RedisCommand) {
+  async execute(message: ParsedMessage): Promise<void> {
     return;
   }
 
-  send(rc: RedisCommand, message): void {
-    rc.channel.send(message).catch(this.logger.error);
+  send(rc: ParsedMessage, message): void {
+    rc.message.channel.send(message).catch(this.logger.error);
   }
 }

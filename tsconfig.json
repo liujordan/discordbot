@@ -12,7 +12,8 @@
     "baseUrl": "src",
     "types": [
       "node",
-      "reflect-metadata"
+      "reflect-metadata",
+      "jest"
     ],
     "moduleResolution": "node",
     "experimentalDecorators": true,

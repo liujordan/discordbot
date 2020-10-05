@@ -20,7 +20,7 @@ export class InventoryManager {
 
   renderPage(page: number): Promise<Buffer> {
     const items = this.getPage(page);
-    return Promise.all(items.map(item => getItem(item.item_id)))
+    return Promise.all(items.map(item => getItem(item.appearance_id)))
       .then(items => {
         return new IconGridBuilder(items).getBuffer();
       });
@@ -28,6 +28,6 @@ export class InventoryManager {
 
   renderItem(page: number, x: number, y: number): Promise<Buffer> {
     const item = this.getItem(page, x, y);
-    return getItem(item.item_id).then(i => getIcon(i));
+    return getItem(item.appearance_id).then(i => getIcon(i));
   }
 }

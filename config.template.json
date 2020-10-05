@@ -5,15 +5,16 @@
     }
   },
   "bot": {
-    "prefix": "%"
+    "prefix": "%",
+    "mode": "pub/sub"
   },
   "rapidApi": {
     "wordsApi": {
       "key": "",
-      "host": ""
+      "host": "wordsapiv1.p.rapidapi.com"
     },
     "urbanDictionary": {
-      "host": "",
+      "host": "mashape-community-urban-dictionary.p.rapidapi.com",
       "key": ""
     }
   },
@@ -21,5 +22,8 @@
     "host": "localhost",
     "port": 6379
   },
-  "mode": "publisher"
+  "mongo": {
+    "host": "localhost",
+    "port": 27017
+  }
 }

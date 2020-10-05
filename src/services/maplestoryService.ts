@@ -1,6 +1,6 @@
 import {Service} from "../di/serviceDecorator";
 import {Category, CategoryItem, ItemsManager} from "../maplestory/interfaces";
-import {RedisService} from "./redisService";
+import {RedisService} from "./caching/redisService";
 import {
   defaultIconHeight,
   defaultIconPageCols,
@@ -95,6 +95,9 @@ export class MaplestoryApi {
       url: `${url}/${region}/${version}/item/category/${category}`
     }).then(items => {
       this.items[category] = items;
-    }).catch(logger.error);
+    }).catch(err => {
+      logger.error(err);
+      throw err;
+    });
   }
 }

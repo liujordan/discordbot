@@ -1,13 +1,6 @@
 import {Ndefine} from "./ndefine";
 import {Command} from "./baseCommand";
-import {Client, MessageEmbed, TextChannel} from "discord.js";
-import {RedisCommand} from "../services/redisService";
-import {getChannel} from "../utils/utils";
 import {getLogger} from "../utils/logger";
-import {MongoConnector} from "../mongo/mongoConnector";
-import {User} from "../mongo/models/user.model";
-import {DiscordService} from "../services/discordService";
-import {RedisQueueService} from "../services/redisQueueService";
 import {Service} from "../di/serviceDecorator";
 import {Injector} from "../di/injector";
 import {Define} from "./define";
@@ -15,13 +8,13 @@ import {Test} from "./test";
 import {Inv} from "./inv";
 import {Shop} from "./shop";
 import {Me} from "./me";
+import {ParsedMessage} from "discord-command-parser";
 
 const logger = getLogger('commands');
 
 @Service()
 export class CommandHandler {
   commands = {};
-  bot: Client;
 
   featureFlags = [
     {
@@ -37,7 +30,7 @@ export class CommandHandler {
     {
       name: 'me',
       class: Me,
-      active: true,
+      active: false,
     },
     {
       name: 'shop',
@@ -47,7 +40,7 @@ export class CommandHandler {
     {
       name: 'inv',
       class: Inv,
-      active: true,
+      active: false,
     },
     {
       name: 'test',
@@ -56,43 +49,11 @@ export class CommandHandler {
     },
   ];
 
-  constructor(
-    public ds: DiscordService,
-    rsq: RedisQueueService,
-    mc: MongoConnector
-  ) {
-    this.bot = ds.client;
-    let bot = this.bot;
-
+  constructor() {
     this.featureFlags.forEach(f => {
       if (f.active) {
         this.addCommand(f.name, Injector.resolve<Command>(f.class));
       }
-    });
-
-    rsq.onMessage((rc: RedisCommand) => {
-      if (rc.command == 'help') {
-        return getChannel(bot, rc).then((channel: TextChannel) => {
-          let embed = new MessageEmbed()
-            .setDescription(this.getHelp());
-          channel.send(embed).catch(logger.error);
-        });
-      }
-
-      const channelPromise = bot.channels.fetch(rc.data.channel_id);
-      const userPromise = User.findOne({discord_id: rc.data.user_id})
-        .then(u => {
-          if (u == null) {
-            return new User({discord_id: rc.data.user_id}).save();
-          }
-          return Promise.resolve(u);
-        });
-
-      Promise.all([userPromise, channelPromise]).then(results => {
-        rc.user = results[0];
-        rc.channel = (results[1] as TextChannel);
-        this.execute(rc);
-      });
     });
   }
 
@@ -117,10 +78,12 @@ export class CommandHandler {
     return process.env.BOT_VERSION;
   }
 
-  execute(msg: RedisCommand) {
+  execute(msg: ParsedMessage) {
     let command: Command = this.commands[msg.command];
     if (command) {
-      command.execute(msg);
+      command.execute(msg).catch(err => {
+        throw new Error(err);
+      });
     } else {
       logger.warn(`No command '${msg.command}'`);
     }
