@@ -1,15 +1,16 @@
 import {Service} from "../di/serviceDecorator";
 import {Client} from "discord.js";
-import {environment} from "../config/environment";
+import {environmentAsync} from "../config/environment";
 import {getLogger} from "../utils/logger";
+import {BaseService} from "./BaseService";
 
 const logger = getLogger('discord');
 
 @Service()
-export class DiscordService {
+export class DiscordService extends BaseService {
   client: Client;
 
-  constructor() {
+  async setup() {
     this.client = new Client();
     this.client.on('ready', () => {
       this.client.user.setActivity("%help").catch(logger.error);
@@ -18,6 +19,8 @@ export class DiscordService {
   }
 
   login() {
-    this.client.login(environment.discord.auth.token).catch(logger.error);
+    environmentAsync.then(config => {
+      this.client.login(config.discord.auth.token).catch(logger.error);
+    });
   }
 }

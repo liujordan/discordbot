@@ -1,12 +1,25 @@
-import {environment} from '../config/environment';
+import {environmentAsync} from '../config/environment';
 import {BaseCommand} from './baseCommand';
 import {urbanDefine} from "../utils/rapidApi";
 import {ParsedMessage} from "discord-command-parser";
+import {DiscordService} from "../services/discordService";
+import {RedisService} from "../services/caching/redisService";
+import {MaplestoryApi} from "../services/maplestoryService";
 
 export class Define extends BaseCommand {
   name = 'define';
   helpString = 'Defines a word or phrase using the urban dictionary';
-  exampleString = `${environment.bot.prefix}define wombo combo`;
+
+  constructor(
+    public ds: DiscordService,
+    public rs: RedisService,
+    public ms: MaplestoryApi
+  ) {
+    super(ds, rs, ms);
+    environmentAsync.then(config => {
+      this.exampleString = `${config.bot.prefix}define wombo combo`;
+    });
+  }
 
 
   async execute(rc: ParsedMessage): Promise<void> {

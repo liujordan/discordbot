@@ -1,8 +1,9 @@
 import {Service} from "../../di/serviceDecorator";
 import {BaseCacheService} from "./baseCacheService";
-import {KeyError} from "../../exceptions";
+import {getLogger} from "../../utils/logger";
 
 const CAPACITY: number = 20;
+const logger = getLogger("MemoryCache");
 
 @Service()
 export class MemoryCache extends BaseCacheService {
@@ -16,14 +17,16 @@ export class MemoryCache extends BaseCacheService {
   }
 
   public get = async (key: string): Promise<string> => {
+    logger.debug("Getting: " + key);
     if (!this.client.has(key)) {
-      throw KeyError;
+      return null;
     }
 
     return this.client.get(key);
   };
 
   public set = async (key: string, val: any): Promise<void> => {
+    logger.debug("Setting: " + key);
     const valToInsert = JSON.stringify(val);
 
     // on cache UPDATE

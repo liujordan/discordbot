@@ -1,28 +1,29 @@
 import axios, {AxiosResponse} from 'axios';
-import {environment} from "../config/environment";
+import {environmentAsync} from "../config/environment";
 
-function getRapidApiHeader(apiName: string) {
+async function getRapidApiHeader(apiName: string) {
+  const config = await environmentAsync;
   return {
-    'x-rapidapi-host': environment.rapidApi[apiName].host,
-    'x-rapidapi-key': environment.rapidApi[apiName].key
+    'x-rapidapi-host': config.rapidApi[apiName].host,
+    'x-rapidapi-key': config.rapidApi[apiName].key
   };
 }
 
-export function urbanDefine(word: string): Promise<AxiosResponse> {
+export async function urbanDefine(word: string): Promise<AxiosResponse> {
   return axios({
     method: 'GET',
     url: 'https://mashape-community-urban-dictionary.p.rapidapi.com/define',
-    headers: getRapidApiHeader("urbanDictionary"),
+    headers: await getRapidApiHeader("urbanDictionary"),
     params: {term: word},
     responseType: 'json'
   });
 }
 
-export function normalDefine(word: string): Promise<AxiosResponse> {
+export async function normalDefine(word: string): Promise<AxiosResponse> {
   return axios({
     method: 'GET',
     url: `https://wordsapiv1.p.rapidapi.com/words/${word}/definitions`,
-    headers: getRapidApiHeader("wordsApi"),
+    headers: await getRapidApiHeader("wordsApi"),
     responseType: 'json'
   });
 }
