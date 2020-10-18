@@ -78,7 +78,7 @@ export class CommandHandler {
     return process.env.BOT_VERSION;
   }
 
-  execute(msg: ParsedMessage) {
+  execute(msg: ParsedMessage<any>) {
     let command: Command = this.commands[msg.command];
     if (command) {
       command.execute(msg).catch(err => {

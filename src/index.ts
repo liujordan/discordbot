@@ -38,7 +38,7 @@ class Main extends Readiable {
         return;
       }
 
-      const pm: ParsedMessage = parser.parse(message);
+      const pm: ParsedMessage<any> = parser.parse(message);
       let m = pm.message;
 
       if (pm.command == 'help' || !pm.success) {

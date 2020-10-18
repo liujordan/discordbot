@@ -22,7 +22,7 @@ export class Ndefine extends BaseCommand {
     });
   }
 
-  async execute(rc: ParsedMessage): Promise<void> {
+  async execute(rc: ParsedMessage<any>): Promise<void> {
     this.logger.debug("defining " + rc.arguments[0]);
     let word = rc.arguments[0];
     normalDefine(word)

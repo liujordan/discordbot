@@ -3,7 +3,7 @@ import {ParsedMessage} from "discord-command-parser";
 
 
 export class Inv extends BaseCommand {
-  async execute(rc: ParsedMessage): Promise<void> {
+  async execute(rc: ParsedMessage<any>): Promise<void> {
     // rc.user
     // .getAvatar()
     // .then(a => a.getInventory())

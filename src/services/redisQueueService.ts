@@ -52,7 +52,7 @@ export class RedisQueueService {
   }
 
 
-  sendCommand(pm: ParsedMessage): Promise<string> {
+  sendCommand(pm: ParsedMessage<any>): Promise<string> {
     let m = pm.message;
     let toSend: RedisCommand = {
       command: pm.command,

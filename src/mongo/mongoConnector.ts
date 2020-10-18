@@ -1,11 +1,11 @@
 import {Db, MongoClient} from 'mongodb';
 import {getLogger} from "../utils/logger";
-import {environment} from "../config/environment";
 import {MaplestoryItem} from "../maplestory/maplestoryItem";
 import mongoose from 'mongoose';
 import {Service} from "../di/serviceDecorator";
 import {Avatar2} from "../maplestory/interfaces";
 
+let environment;
 const url = `mongodb://${environment.mongo.host}:${environment.mongo.port}`;
 const dbName = 'myproject';
 const logger = getLogger('mongo');

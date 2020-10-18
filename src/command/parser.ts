@@ -14,7 +14,7 @@ export class Parser {
     });
   }
 
-  parse(s: Message): ParsedMessage {
+  parse(s: Message): ParsedMessage<any> {
     return parse(s, this.prefix);
   }
 

@@ -32,7 +32,7 @@ export class Shop extends BaseCommand {
     "Hair": {}
   };
 
-  promptItemBuy(rc: ParsedMessage, item: MaplestoryItem) {
+  promptItemBuy(rc: ParsedMessage<any>, item: MaplestoryItem) {
     let reacts = [buy, buyAndEquip];
     getIcon(item)
       .then(buff => {
@@ -55,7 +55,7 @@ export class Shop extends BaseCommand {
       .then(msg => this.handleMessageReaction(reacts, msg, item, rc));
   }
 
-  async execute(rc: ParsedMessage): Promise<void> {
+  async execute(rc: ParsedMessage<any>): Promise<void> {
     let idx = 0;
     let x, y;
     // return this.getSkinIds().then(asdf => {
@@ -109,7 +109,7 @@ export class Shop extends BaseCommand {
     return this.rs.cachedRequest<number[]>({url: "https://maplestory.io/api/GMS/211.1.0/character"});
   }
 
-  private handleMessageReaction(reacts: string[], msg: Message, item: MaplestoryItem, rc: ParsedMessage) {
+  private handleMessageReaction(reacts: string[], msg: Message, item: MaplestoryItem, rc: ParsedMessage<any>) {
     reacts.forEach(i => msg.react(i).catch(this.logger.error));
     const filter = (reaction, user) => {
       return reacts.includes(reaction.emoji.name) && !user.bot;
@@ -140,7 +140,7 @@ export class Shop extends BaseCommand {
   }
 
   // stupid. returns a the error string to send if the valid is not valid
-  private isValid(rc: ParsedMessage, categories: any): string[] {
+  private isValid(rc: ParsedMessage<any>, categories: any): string[] {
     let out = Object.keys(categories);
     let cur: any = categories;
 

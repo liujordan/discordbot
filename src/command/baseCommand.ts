@@ -11,7 +11,7 @@ export interface Command {
   name: string
   helpString: string
   exampleString?: string
-  execute: (m: ParsedMessage) => Promise<void>
+  execute: (m: ParsedMessage<any>) => Promise<void>
 }
 
 @Service()
@@ -30,11 +30,11 @@ export class BaseCommand implements Command {
     this.bot = ds.client;
   }
 
-  async execute(message: ParsedMessage): Promise<void> {
+  async execute(message: ParsedMessage<any>): Promise<void> {
     return;
   }
 
-  send(rc: ParsedMessage, message): void {
+  send(rc: ParsedMessage<any>, message): void {
     rc.message.channel.send(message).catch(this.logger.error);
   }
 }

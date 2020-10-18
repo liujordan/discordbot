@@ -22,7 +22,7 @@ export class Define extends BaseCommand {
   }
 
 
-  async execute(rc: ParsedMessage): Promise<void> {
+  async execute(rc: ParsedMessage<any>): Promise<void> {
     let word = rc.arguments.join(" ");
     this.logger.debug("defining " + word);
     urbanDefine(rc.arguments.join(" "))
