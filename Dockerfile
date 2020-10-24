@@ -3,8 +3,7 @@ WORKDIR /app
 COPY package.json .
 
 COPY . .
-RUN npm install
-RUN npm run build && rm -r src
+RUN npm install && npm run build && rm -r src
 ARG BOT_VERSION
 ENV BOT_VERSION=$BOT_VERSION
 ENV AWS_REGION=us-west-2
