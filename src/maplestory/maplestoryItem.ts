@@ -1,7 +1,6 @@
 import {AxiosResponse} from "axios";
 import {RedisService} from "../services/caching/redisService";
 import {region, url, version} from "./constants";
-import {Injector} from "../di/injector";
 import {container} from "tsyringe";
 
 export interface Description {
