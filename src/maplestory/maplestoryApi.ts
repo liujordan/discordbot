@@ -2,11 +2,11 @@ import encodeurl from 'encodeurl';
 import {AxiosResponse} from "axios";
 import {MaplestoryItem} from "./maplestoryItem";
 import {region, url, version} from "./constants";
-import {Injector} from "../di/injector";
 import {MemoryCache} from "../services/caching/memoryCache";
 import {RequestService} from "../services/requestService";
+import {container} from "tsyringe";
 
-const memoryCache = Injector.resolve<MemoryCache>(MemoryCache);
+const memoryCache = container.resolve<MemoryCache>(MemoryCache);
 const rc = new RequestService(memoryCache);
 
 export enum ItemCategory {

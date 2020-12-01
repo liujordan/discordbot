@@ -2,7 +2,6 @@ import {Db, MongoClient} from 'mongodb';
 import {getLogger} from "../utils/logger";
 import {MaplestoryItem} from "../maplestory/maplestoryItem";
 import mongoose from 'mongoose';
-import {Service} from "../di/serviceDecorator";
 import {Avatar2} from "../maplestory/interfaces";
 
 let environment;
@@ -34,7 +33,6 @@ export interface avatarMember {
   slots: Slot[]
 }
 
-@Service()
 export class MongoConnector {
   client: MongoClient;
   db: Db;

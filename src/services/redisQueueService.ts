@@ -1,4 +1,3 @@
-import {Service} from "../di/serviceDecorator";
 import {getLogger} from "../utils/logger";
 import RedisSMQ from "rsmq-promise";
 import {ParsedMessage} from "discord-command-parser";
@@ -7,7 +6,6 @@ import {DiscordService} from "./discordService";
 
 const logger = getLogger('redis-queue');
 
-@Service()
 export class RedisQueueService {
   qname = "DISCORDJOBS";
   ns = "rsmq";

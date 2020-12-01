@@ -2,6 +2,7 @@ import {AxiosResponse} from "axios";
 import {RedisService} from "../services/caching/redisService";
 import {region, url, version} from "./constants";
 import {Injector} from "../di/injector";
+import {container} from "tsyringe";
 
 export interface Description {
   id: number;
@@ -57,7 +58,7 @@ export interface MaplestoryItem {
   typeInfo?: TypeInfo;
 }
 
-const rc = Injector.resolve<RedisService>(RedisService);
+const rc = container.resolve<RedisService>(RedisService);
 
 export abstract class BaseItem {
   constructor(item: MaplestoryItem) {

@@ -1,4 +1,3 @@
-import {Service} from "../di/serviceDecorator";
 import {Category, CategoryItem, ItemsManager} from "../maplestory/interfaces";
 import {RedisService} from "./caching/redisService";
 import {
@@ -14,24 +13,25 @@ import {MaplestoryItem} from "../maplestory/maplestoryItem";
 import {IconGridBuilder} from "../maplestory/iconGridBuilder";
 import {getItem, ItemCategory} from "../maplestory/maplestoryApi";
 import {getLogger} from "../utils/logger";
+import {injectable} from "tsyringe";
 
 const logger = getLogger('maplestory');
 
-@Service()
+@injectable()
 export class MaplestoryApi {
-  items: ItemsManager;
+  items: ItemsManager = {};
   categories: Category;
 
   constructor(public rs: RedisService) {
-    this.items = {};
     logger.info(`Warming item categories`);
-    if (process.env.DISCORDBOT_MODE == 'subscriber') {
-      this.fetchItemCategory(ItemCategory.equip);
-      this.fetchItemCategory(ItemCategory.use);
-      this.fetchItemCategory(ItemCategory.setup);
-      this.fetchItemCategory(ItemCategory.etc);
-      this.fetchItemCategory(ItemCategory.cash);
-    }
+    Promise.all([
+      this.fetchItemCategory(ItemCategory.equip),
+      this.fetchItemCategory(ItemCategory.use),
+      this.fetchItemCategory(ItemCategory.setup),
+      this.fetchItemCategory(ItemCategory.etc),
+      this.fetchItemCategory(ItemCategory.cash),
+    ])
+    logger.info(`Ready`)
   }
 
   getItemCategories(): Promise<Category> {
@@ -91,13 +91,15 @@ export class MaplestoryApi {
   }
 
   private fetchItemCategory(category: string) {
-    this.rs.cachedRequest<CategoryItem[]>({
+    let promise = this.rs.cachedRequest<CategoryItem[]>({
       url: `${url}/${region}/${version}/item/category/${category}`
-    }).then(items => {
+    })
+    promise.then(items => {
       this.items[category] = items;
     }).catch(err => {
       logger.error(err);
       throw err;
     });
+    return promise
   }
 }

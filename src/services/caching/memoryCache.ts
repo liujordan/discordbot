@@ -1,11 +1,9 @@
-import {Service} from "../../di/serviceDecorator";
 import {BaseCacheService} from "./baseCacheService";
 import {getLogger} from "../../utils/logger";
 
 const CAPACITY: number = 20;
 const logger = getLogger("MemoryCache");
 
-@Service()
 export class MemoryCache extends BaseCacheService {
   private client: Map<string, string>;
   private lru: any[];

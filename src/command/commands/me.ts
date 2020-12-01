@@ -1,5 +1,6 @@
 import {BaseCommand} from "./baseCommand";
-import {Avatar2} from "../maplestory/interfaces";
+import {Avatar2} from "../../maplestory/interfaces";
+import {injectable} from "tsyringe";
 
 const defaultAvatar: Avatar2 = {
   items: [
@@ -13,8 +14,9 @@ const defaultAvatar: Avatar2 = {
   ]
 };
 
+@injectable()
 export class Me extends BaseCommand {
-
+  name = "me"
   helpString = "Shows of your current character";
   //
   // execute(rc: RedisCommand) {

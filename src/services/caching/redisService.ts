@@ -3,11 +3,10 @@ import {getLogger} from "../../utils/logger";
 import {AxiosRequestConfig} from "axios";
 import {TextChannel} from "discord.js";
 import {IUser} from "../../mongo/models/user.model";
-import {Service} from "../../di/serviceDecorator";
 import {BaseCacheService, CacheService} from "./baseCacheService";
 import {RequestService} from "../requestService";
 import {MemoryCache} from "./memoryCache";
-import {Injector} from "../../di/injector";
+import {injectable} from "tsyringe";
 
 export interface RedisCommand {
   command: string
@@ -26,7 +25,7 @@ export interface RedisCommand {
 
 const logger = getLogger('redis');
 
-@Service()
+@injectable()
 export class RedisService extends BaseCacheService {
   private static _instance: RedisService;
   client: CacheService;
@@ -48,14 +47,6 @@ export class RedisService extends BaseCacheService {
     this.requestService = new RequestService(memoryCache);
 
     RedisService._instance = this;
-  }
-
-  // close() {
-  //   this.client.quit();
-  // }
-
-  static getInstance(): RedisService {
-    return Injector.resolve<RedisService>(RedisService);
   }
 
   // this should only be used for request that serves static data

@@ -1,15 +1,22 @@
 import {parse, ParsedMessage} from 'discord-command-parser';
 import {Message} from 'discord.js';
-import {environmentAsync} from '../config/environment';
+import {container, injectable} from "tsyringe";
+import {getLogger} from "../utils/logger";
+import {ConfigProvider} from "../provider/configuration";
 
+const logger = getLogger("parser")
+
+@injectable()
 export class Parser {
   prefix: string;
   ready: Promise<void>;
+  protected configProvider: ConfigProvider = container.resolve("ConfigProvider")
 
   constructor() {
     this.ready = new Promise(async (resolve, reject) => {
-      const config = await environmentAsync;
+      const config = await this.configProvider.getConfig();
       this.prefix = config.bot.prefix;
+      logger.info("Ready")
       resolve();
     });
   }

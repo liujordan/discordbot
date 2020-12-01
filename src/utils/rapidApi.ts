@@ -1,8 +1,10 @@
 import axios, {AxiosResponse} from 'axios';
-import {environmentAsync} from "../config/environment";
+import {ConfigProvider} from "../provider/configuration";
+import {container} from "tsyringe";
 
 async function getRapidApiHeader(apiName: string) {
-  const config = await environmentAsync;
+  const config = await container.resolve<ConfigProvider>("ConfigProvider").getConfig();
+
   return {
     'x-rapidapi-host': config.rapidApi[apiName].host,
     'x-rapidapi-key': config.rapidApi[apiName].key
@@ -26,4 +28,14 @@ export async function normalDefine(word: string): Promise<AxiosResponse> {
     headers: await getRapidApiHeader("wordsApi"),
     responseType: 'json'
   });
+}
+
+export class RapidApi {
+  async urbanDefine(word: string) {
+    return urbanDefine(word)
+  }
+
+  async normalDefine(word: string) {
+    return normalDefine(word)
+  }
 }

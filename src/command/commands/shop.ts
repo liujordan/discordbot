@@ -1,10 +1,13 @@
 import {BaseCommand} from "./baseCommand";
 import {Message, MessageEmbed} from "discord.js";
-import {getIcon, getItem} from "../maplestory/maplestoryApi";
+import {getIcon, getItem} from "../../maplestory/maplestoryApi";
 import Jimp from 'jimp';
-import {MaplestoryItem} from "../maplestory/maplestoryItem";
-import {defaultIconPageCols, defaultIconPageRows} from "../maplestory/constants";
+import {MaplestoryItem} from "../../maplestory/maplestoryItem";
+import {defaultIconPageCols, defaultIconPageRows} from "../../maplestory/constants";
 import {ParsedMessage} from "discord-command-parser";
+import {container, injectable} from "tsyringe";
+import {MaplestoryApi} from "../../services/maplestoryService";
+import {RedisService} from "../../services/caching/redisService";
 
 function capitalizeFirstLetter(str: string) {
   var splitStr = str.split(' ');
@@ -21,9 +24,14 @@ let buy = "💳";
 let sell = "🚫";
 let buyAndEquip = "🥖";
 
+@injectable()
 export class Shop extends BaseCommand {
+  name = "shop"
   exampleString = `%shop setup other chair 1 0:0`;
   helpString = "A place to buy items";
+
+  protected ms: MaplestoryApi = container.resolve(MaplestoryApi);
+  protected rs: RedisService = container.resolve(RedisService);
 
   categories = {
     "Skin": {},
@@ -58,9 +66,7 @@ export class Shop extends BaseCommand {
   async execute(rc: ParsedMessage<any>): Promise<void> {
     let idx = 0;
     let x, y;
-    // return this.getSkinIds().then(asdf => {
-    //   return rc.channel.send(JSON.stringify(asdf));
-    // })
+
     this.ms.getItemCategories().then(categories => {
 
       // check each argument is valid

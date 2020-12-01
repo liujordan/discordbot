@@ -1,22 +1,20 @@
-import {environmentAsync} from '../config/environment';
 import {BaseCommand} from './baseCommand';
-import {urbanDefine} from "../utils/rapidApi";
+import {RapidApi} from "../../utils";
 import {ParsedMessage} from "discord-command-parser";
-import {DiscordService} from "../services/discordService";
-import {RedisService} from "../services/caching/redisService";
-import {MaplestoryApi} from "../services/maplestoryService";
+import {inject, injectable} from "tsyringe";
+import {ConfigProvider} from "../../provider/configuration";
 
+@injectable()
 export class Define extends BaseCommand {
   name = 'define';
   helpString = 'Defines a word or phrase using the urban dictionary';
 
   constructor(
-    public ds: DiscordService,
-    public rs: RedisService,
-    public ms: MaplestoryApi
+    @inject("ConfigProvider") public config: ConfigProvider,
+    protected rapidApi: RapidApi
   ) {
-    super(ds, rs, ms);
-    environmentAsync.then(config => {
+    super();
+    config.getConfig().then(config => {
       this.exampleString = `${config.bot.prefix}define wombo combo`;
     });
   }
@@ -25,9 +23,8 @@ export class Define extends BaseCommand {
   async execute(rc: ParsedMessage<any>): Promise<void> {
     let word = rc.arguments.join(" ");
     this.logger.debug("defining " + word);
-    urbanDefine(rc.arguments.join(" "))
+    this.rapidApi.urbanDefine(rc.arguments.join(" "))
       .then(resp => {
-        this.logger.debug("found def for " + word);
         let body = resp.data;
         if (body.list.length === 0) return this.send(rc, "word not found");
         let def = body.list[0];

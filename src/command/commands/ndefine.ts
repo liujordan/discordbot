@@ -1,23 +1,21 @@
-import {environmentAsync} from '../config/environment';
 import {BaseCommand} from './baseCommand';
-import {normalDefine} from "../utils/rapidApi";
+import {normalDefine} from "../../utils/rapidApi";
 import {ParsedMessage} from "discord-command-parser";
-import {DiscordService} from "../services/discordService";
-import {RedisService} from "../services/caching/redisService";
-import {MaplestoryApi} from "../services/maplestoryService";
+import {DiscordService} from "../../services/discordService";
+import {inject, injectable} from "tsyringe";
+import {ConfigProvider} from "../../provider/configuration";
 
+@injectable()
 export class Ndefine extends BaseCommand {
-  name = 'define';
+  name = 'ndefine';
   helpString = 'Defines a word using the normal dictionary';
 
   constructor(
     public ds: DiscordService,
-    public rs: RedisService,
-    public ms: MaplestoryApi
+    @inject("ConfigProvider") protected configProvider: ConfigProvider
   ) {
-    super(ds, rs, ms);
-
-    environmentAsync.then(config => {
+    super();
+    configProvider.getConfig().then(config => {
       this.exampleString = `${config.bot.prefix}ndefine dictionary`;
     });
   }

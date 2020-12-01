@@ -1,8 +1,12 @@
 import {BaseCommand} from "./baseCommand";
 import {ParsedMessage} from "discord-command-parser";
+import {injectable} from "tsyringe";
 
-
+@injectable()
 export class Inv extends BaseCommand {
+  name = "inv"
+  helpString = "View your inventory"
+
   async execute(rc: ParsedMessage<any>): Promise<void> {
     // rc.user
     // .getAvatar()

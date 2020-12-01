@@ -1,5 +1,6 @@
 import AWS from 'aws-sdk';
-import AppConfig from "aws-sdk/clients/appconfig";
+import AppConfig, {Configuration} from "aws-sdk/clients/appconfig";
+import {promisify} from "util";
 
 export type BotMode = 'publisher' | 'subscriber' | 'pub/sub'
 
@@ -49,28 +50,47 @@ export interface Config {
 }
 
 export interface ConfigProvider {
-  getConfig(): any
+  getConfig(): Promise<Config>
 }
 
 export class JsonConfigProvider implements ConfigProvider {
-  getConfig(): Config {
+  getConfig(): Promise<Config> {
     return null;
   }
 }
 
 export class EnvironmentConfigProvider implements ConfigProvider {
-  getConfig(): Config {
+  getConfig(): Promise<Config> {
     return null;
   }
 }
 
 export class AwsAppConfigProvider implements ConfigProvider {
-  async getConfig(): Promise<AppConfig.Types.ConfigurationProfile> {
-    let config = new AWS.AppConfig({apiVersion: '2019-10-09'});
-    let params = {
-      ApplicationId: 'discordbot',
-      ConfigurationProfileId: 'base' /* required */
-    };
-    return config.getConfigurationProfile(params).promise();
+  appConfig: Config;
+  appConfigVersion: string;
+
+  private async fetchConfigurationFromAws(): Promise<Configuration> {
+    const appconfig = new AWS.AppConfig();
+    return appconfig.getConfiguration({
+      Application: 'discordbot',
+      ClientId: 'discordbot-unique-id-haha1',
+      Configuration: 'base',
+      Environment: 'dev',
+      ClientConfigurationVersion: this.appConfigVersion
+    }).promise()
+  }
+
+  async getConfig(): Promise<Config> {
+    let config: Configuration = await this.fetchConfigurationFromAws();
+
+    this.appConfigVersion = config.ConfigurationVersion;
+    if (config.Content.toString().length > 0) {
+      this.appConfig = JSON.parse(config.Content.toString());
+    }
+
+    return this.appConfig;
   }
 }
+
+
+

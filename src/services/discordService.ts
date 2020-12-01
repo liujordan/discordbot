@@ -1,25 +1,26 @@
-import {Service} from "../di/serviceDecorator";
 import {Client} from "discord.js";
-import {environmentAsync} from "../config/environment";
 import {getLogger} from "../utils/logger";
 import {BaseService} from "./BaseService";
+import {ConfigProvider} from "../provider/configuration";
+import {container} from "tsyringe";
 
 const logger = getLogger('discord');
-
-@Service()
 export class DiscordService extends BaseService {
   client: Client;
+  protected configProvider: ConfigProvider = container.resolve("ConfigProvider")
 
-  async setup() {
+  constructor() {
+    super();
     this.client = new Client();
     this.client.on('ready', () => {
       this.client.user.setActivity("%help").catch(logger.error);
       logger.info("Ready");
     });
+    this.login()
   }
 
   login() {
-    environmentAsync.then(config => {
+    this.configProvider.getConfig().then(config => {
       this.client.login(config.discord.auth.token).catch(logger.error);
     });
   }

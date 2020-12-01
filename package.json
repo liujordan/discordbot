@@ -34,6 +34,7 @@
     "rsmq": "^0.12.0",
     "rsmq-promise": "^1.0.4",
     "rsmq-worker": "^0.5.2",
+    "tsyringe": "^4.4.0",
     "winston": "^3.2.1",
     "yargs": "^14.0.0"
   },
