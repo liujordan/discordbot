@@ -14,10 +14,6 @@ export class CommandHandler {
         })
     }
 
-    addCommand(name: string, command: ICommand) {
-        this.commands[name] = command;
-    }
-
     get help(): string {
         let out = "";
         if (this.version) {

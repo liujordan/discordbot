@@ -1,6 +1,5 @@
 import AWS from 'aws-sdk';
-import AppConfig, {Configuration} from "aws-sdk/clients/appconfig";
-import {promisify} from "util";
+import {Configuration} from "aws-sdk/clients/appconfig";
 
 export type BotMode = 'publisher' | 'subscriber' | 'pub/sub'
 
@@ -47,6 +46,9 @@ export interface Config {
   },
   redis: BaseServiceConfig,
   mongo: BaseServiceConfig,
+  topggApi: {
+    key: string
+  }
 }
 
 export interface ConfigProvider {
@@ -55,7 +57,7 @@ export interface ConfigProvider {
 
 export class JsonConfigProvider implements ConfigProvider {
   getConfig(): Promise<Config> {
-    return null;
+    return Promise.resolve(require("../../../config.json"));
   }
 }
 
@@ -75,7 +77,7 @@ export class AwsAppConfigProvider implements ConfigProvider {
       Application: 'discordbot',
       ClientId: 'discordbot-unique-id-haha1',
       Configuration: 'base',
-      Environment: 'dev',
+      Environment: 'prod',
       ClientConfigurationVersion: this.appConfigVersion
     }).promise()
   }
