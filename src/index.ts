@@ -10,6 +10,7 @@ import {DiscordService} from "./services/discordService";
 import {ParsedMessage} from "discord-command-parser";
 import {container, injectable} from "tsyringe";
 import * as di from "./dependency";
+import {ExpressService} from "./services/expressService";
 
 const logger = getLogger();
 logger.info("Logging level: " + logLevel);
@@ -22,6 +23,7 @@ if (process.env.NODE_ENV !== 'production') {
 @injectable()
 class Main {
   protected ds: DiscordService = container.resolve<DiscordService>(DiscordService)
+  protected app = container.resolve<ExpressService>(ExpressService)
   protected commandHandler = container.resolve<CommandHandler>(CommandHandler)
   protected parser = container.resolve<Parser>(Parser)
 
