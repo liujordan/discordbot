@@ -1,5 +1,5 @@
 import {BaseService} from "./BaseService";
-import {Express} from 'express';
+import express, {Express} from 'express';
 import {getLogger} from "../utils";
 const logger = getLogger('express')
 
@@ -10,7 +10,7 @@ export class ExpressService extends BaseService {
     super();
     const port = process.env.PORT || this.port
     const host = process.env.HOST || this.host
-    const app = Express();
+    const app = express();
     app.get('/', (req, res) => {
       res.send("hello world!")
     })
